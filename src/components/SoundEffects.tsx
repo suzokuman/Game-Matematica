@@ -28,8 +28,8 @@ export const useSoundEffects = () => {
 };
 
 const SoundEffects: React.FC<SoundEffectsProps> = ({ 
-  correctSoundUrl = "https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3", 
-  wrongSoundUrl = "https://assets.mixkit.co/active_storage/sfx/254/254-preview.mp3" 
+  correctSoundUrl = "caminho/para/som_correto.mp3", 
+  wrongSoundUrl = "caminho/para/som_errado.mp3" 
 }) => {
   const { correctRef, wrongRef } = useSoundEffects();
 
