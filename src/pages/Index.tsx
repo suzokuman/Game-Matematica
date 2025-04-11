@@ -1,12 +1,17 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useEffect } from "react";
+import ArithmeticGame from "../components/ArithmeticGame";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
+  useEffect(() => {
+    // Atualizar o título da página
+    document.title = "Jogo de Aritmética";
+  }, []);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="bg-gradient-to-b from-game-light to-game-background min-h-screen">
+      <ArithmeticGame />
     </div>
   );
 };
