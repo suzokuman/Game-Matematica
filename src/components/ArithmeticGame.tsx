@@ -6,19 +6,23 @@ import EndScreen from "./EndScreen";
 import SoundEffects from "./SoundEffects";
 import { motion } from "framer-motion";
 
-const ArithmeticGame = () => {
+interface ArithmeticGameProps {
+  initialOperationType?: string;
+}
+
+const ArithmeticGame = ({ initialOperationType }: ArithmeticGameProps = {}) => {
   const [gameState, setGameState] = useState<"start" | "playing" | "end">("start");
   const [currentLevel, setCurrentLevel] = useState(0);
   const [score, setScore] = useState(0);
-  const [operationType, setOperationType] = useState("soma");
+  const [operationType, setOperationType] = useState(initialOperationType || "soma");
   const maxLevels = 20;
 
   useEffect(() => {
     // Verificar se há um tipo de operação na URL
     const params = new URLSearchParams(window.location.search);
-    const tipo = params.get("tipo") || "soma";
+    const tipo = params.get("tipo") || initialOperationType || "soma";
     setOperationType(tipo);
-  }, []);
+  }, [initialOperationType]);
 
   const startGame = () => {
     setGameState("playing");
