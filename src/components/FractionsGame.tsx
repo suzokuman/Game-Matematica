@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import StartScreen from "./StartScreen";
@@ -74,7 +73,7 @@ const FractionsGame = () => {
   };
 
   const [dropStatus, setDropStatus] = useState<"idle" | "correct" | "wrong">("idle");
-  const [dropMessage, setDropMessage] = useState("Solte aqui a fração correta");
+  const [dropMessage, setDropMessage] = useState("Arraste a resposta correta aqui!");
   const [options, setOptions] = useState<string[]>([]);
 
   useEffect(() => {
@@ -90,7 +89,7 @@ const FractionsGame = () => {
       <div 
         className="fraction px-8 py-5 bg-gradient-to-br from-game-secondary to-game-primary text-white font-bold rounded-xl cursor-grab 
                   transform transition-all duration-200 shadow-md hover:shadow-lg active:scale-95 select-none
-                  scale-125" // Reduced from scale-150 to scale-125 (30% smaller)
+                  scale-125"
         draggable="true"
         onDragStart={(e) => {
           e.dataTransfer.setData("text/plain", value);
@@ -116,7 +115,7 @@ const FractionsGame = () => {
 
     return (
       <div
-        className={`drop-zone transition-colors ${
+        className={`drop-zone transition-colors w-1/2 h-36 ${
           dropStatus === "correct" ? "correct" : dropStatus === "wrong" ? "wrong" : ""
         }`}
         onDragOver={handleDragOver}
@@ -166,7 +165,7 @@ const FractionsGame = () => {
         }}
       ></div>
 
-      <div className="w-full max-w-lg mb-6 mx-auto">
+      <div className="w-full max-w-lg mb-6 mx-auto flex justify-center">
         <FractionDropZone />
       </div>
 
