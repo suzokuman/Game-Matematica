@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import StartScreen from "./StartScreen";
@@ -89,7 +90,7 @@ const FractionsGame = () => {
       <div 
         className="fraction px-8 py-5 bg-gradient-to-br from-game-secondary to-game-primary text-white font-bold rounded-xl cursor-grab 
                   transform transition-all duration-200 shadow-md hover:shadow-lg active:scale-95 select-none
-                  scale-150"
+                  scale-125" // Reduced from scale-150 to scale-125 (30% smaller)
         draggable="true"
         onDragStart={(e) => {
           e.dataTransfer.setData("text/plain", value);
