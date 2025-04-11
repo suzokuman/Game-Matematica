@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import StartScreen from "./StartScreen";
@@ -12,7 +11,6 @@ const FractionsGame = () => {
   const [score, setScore] = useState(0);
   const { playCorrect, playWrong } = useSoundEffects();
 
-  // Lista de frações por nível
   const levels = [
     "1/2", "1/3", "1/4", "3/4", "2/3", "3/5", "4/5", "1/5", "1/6", "5/6",
     "1/8", "3/8", "5/8", "7/8", "2/6", "2/4", "3/6", "1/10", "3/10", "9/10"
@@ -32,17 +30,15 @@ const FractionsGame = () => {
     setGameState("start");
   };
 
-  // Gera visual da pizza com base na fração correta
   const generatePizzaGradient = (fraction: string) => {
     const [num, den] = fraction.split("/").map(Number);
     const percent = (num / den) * 100;
     return `conic-gradient(#ff9999 0% ${percent}%, #ffffff ${percent}% 100%)`;
   };
 
-  // Gera 6 opções de resposta, incluindo a correta (aumentado de 5 para 6)
   const generateOptions = (correct: string) => {
     const options = new Set([correct]);
-    while (options.size < 6) { // Mudado para 6 opções
+    while (options.size < 6) {
       const n = Math.floor(Math.random() * 9) + 1;
       const d = Math.floor(Math.random() * 9) + 1;
       if (n < d) options.add(`${n}/${d}`);
@@ -80,7 +76,6 @@ const FractionsGame = () => {
   const [dropMessage, setDropMessage] = useState("Solte aqui a fração correta");
   const [options, setOptions] = useState<string[]>([]);
 
-  // Load level whenever currentLevel changes
   useEffect(() => {
     if (gameState === "playing") {
       const fraction = levels[currentLevel];
@@ -88,14 +83,13 @@ const FractionsGame = () => {
     }
   }, [currentLevel, gameState]);
 
-  // Fraction Component - Aumentado tamanho em 50% e espaçamento em 20%
   const Fraction = ({ value, onDragStart }: { value: string, onDragStart: () => void }) => {
     const [num, den] = value.split("/");
     return (
       <div 
         className="fraction px-8 py-5 bg-gradient-to-br from-game-secondary to-game-primary text-white font-bold rounded-xl cursor-grab 
                   transform transition-all duration-200 shadow-md hover:shadow-lg active:scale-95 select-none
-                  scale-150" // Aumentado em 50%
+                  scale-150"
         draggable="true"
         onDragStart={(e) => {
           e.dataTransfer.setData("text/plain", value);
@@ -108,7 +102,6 @@ const FractionsGame = () => {
     );
   };
 
-  // Drop Zone Component
   const FractionDropZone = () => {
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
@@ -133,7 +126,6 @@ const FractionsGame = () => {
     );
   };
 
-  // Main Game Screen
   if (gameState === "start") {
     return (
       <StartScreen onStart={startGame} operationType="frações" />
@@ -177,7 +169,7 @@ const FractionsGame = () => {
         <FractionDropZone />
       </div>
 
-      <div className="flex flex-wrap justify-center gap-8 my-12">
+      <div className="flex flex-wrap justify-center gap-16 my-12">
         {options.map((option, index) => (
           <Fraction key={index} value={option} onDragStart={() => {}} />
         ))}
