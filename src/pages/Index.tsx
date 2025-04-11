@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import ArithmeticGame from "../components/ArithmeticGame";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -31,7 +32,7 @@ const Index = () => {
   if (selectedGame === "arithmetic") {
     return (
       <div className="bg-gradient-to-b from-game-light to-game-background min-h-screen">
-        <ArithmeticGame />
+        <ArithmeticGame initialOperationType={operationType} />
       </div>
     );
   }
