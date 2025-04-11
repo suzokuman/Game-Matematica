@@ -28,8 +28,8 @@ export const useSoundEffects = () => {
 };
 
 const SoundEffects: React.FC<SoundEffectsProps> = ({ 
-  correctSoundUrl = "caminho/para/som_correto.mp3", 
-  wrongSoundUrl = "caminho/para/som_errado.mp3" 
+  correctSoundUrl = "src/correct.mp3", 
+  wrongSoundUrl = "src/wrong.mp3" 
 }) => {
   const { correctRef, wrongRef } = useSoundEffects();
 
