@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import ArithmeticGame from "../components/ArithmeticGame";
-import { useIsMobile } from "@/hooks/use-mobile";
+import FractionsGame from "../components/FractionsGame";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
@@ -20,7 +20,8 @@ const Index = () => {
   };
 
   const startFractions = () => {
-    alert("O jogo de Frações ainda será implementado em breve!");
+    setSelectedGame("fractions");
+    setShowStartScreen(false);
   };
 
   const startArithmetic = (tipo: string) => {
@@ -33,6 +34,14 @@ const Index = () => {
     return (
       <div className="bg-gradient-to-b from-game-light to-game-background min-h-screen">
         <ArithmeticGame initialOperationType={operationType} />
+      </div>
+    );
+  }
+
+  if (selectedGame === "fractions") {
+    return (
+      <div className="bg-gradient-to-b from-game-light to-game-background min-h-screen">
+        <FractionsGame />
       </div>
     );
   }
