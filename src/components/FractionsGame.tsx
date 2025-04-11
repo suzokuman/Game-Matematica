@@ -39,10 +39,10 @@ const FractionsGame = () => {
     return `conic-gradient(#ff9999 0% ${percent}%, #ffffff ${percent}% 100%)`;
   };
 
-  // Gera 5 opções de resposta, incluindo a correta
+  // Gera 6 opções de resposta, incluindo a correta (aumentado de 5 para 6)
   const generateOptions = (correct: string) => {
     const options = new Set([correct]);
-    while (options.size < 5) {
+    while (options.size < 6) { // Mudado para 6 opções
       const n = Math.floor(Math.random() * 9) + 1;
       const d = Math.floor(Math.random() * 9) + 1;
       if (n < d) options.add(`${n}/${d}`);
@@ -88,13 +88,14 @@ const FractionsGame = () => {
     }
   }, [currentLevel, gameState]);
 
-  // Fraction Component
+  // Fraction Component - Aumentado tamanho em 50% e espaçamento em 20%
   const Fraction = ({ value, onDragStart }: { value: string, onDragStart: () => void }) => {
     const [num, den] = value.split("/");
     return (
       <div 
-        className="fraction px-6 py-3 bg-gradient-to-br from-game-secondary to-game-primary text-white font-bold rounded-xl cursor-grab 
-                  transform transition-all duration-200 shadow-md hover:shadow-lg active:scale-95 select-none"
+        className="fraction px-8 py-5 bg-gradient-to-br from-game-secondary to-game-primary text-white font-bold rounded-xl cursor-grab 
+                  transform transition-all duration-200 shadow-md hover:shadow-lg active:scale-95 select-none
+                  scale-150" // Aumentado em 50%
         draggable="true"
         onDragStart={(e) => {
           e.dataTransfer.setData("text/plain", value);
@@ -176,7 +177,7 @@ const FractionsGame = () => {
         <FractionDropZone />
       </div>
 
-      <div className="flex flex-wrap justify-center gap-4">
+      <div className="flex flex-wrap justify-center gap-8 my-12">
         {options.map((option, index) => (
           <Fraction key={index} value={option} onDragStart={() => {}} />
         ))}

@@ -53,10 +53,10 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
   };
 
-  // Gera 5 opções (1 correta + 4 erradas)
+  // Gera 6 opções (1 correta + 5 erradas) - aumentado de 5 para 6
   const generateOptions = (correct: number) => {
     const optionsSet = new Set([correct]);
-    while (optionsSet.size < 5) {
+    while (optionsSet.size < 6) { // Mudado para 6 opções
       const offset = Math.floor(Math.random() * 10) + 1;
       optionsSet.add(correct + (Math.random() < 0.5 ? offset : -offset));
     }
