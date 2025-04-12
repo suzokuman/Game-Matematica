@@ -5,11 +5,11 @@ import FractionsGame from "../components/FractionsGame";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import LeaderboardTable, { LeaderboardEntry } from "@/components/LeaderboardTable";
 
 const playerSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -24,6 +24,8 @@ const Index = () => {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [operationType, setOperationType] = useState("soma");
   const [playerInfo, setPlayerInfo] = useState<{ name: string; grade: string } | null>(null);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
   
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerSchema),
@@ -35,6 +37,21 @@ const Index = () => {
 
   useEffect(() => {
     document.title = "Jogo Educativo de Matemática";
+    
+    // Try to load player info from localStorage
+    const savedPlayerInfo = localStorage.getItem("playerInfo");
+    if (savedPlayerInfo) {
+      try {
+        const parsedInfo = JSON.parse(savedPlayerInfo);
+        setPlayerInfo(parsedInfo);
+      } catch (e) {
+        console.error("Error loading player info:", e);
+      }
+    }
+    
+    // Load leaderboard entries
+    const entries = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+    setLeaderboardEntries(entries);
   }, []);
 
   const toggleArithmeticMenu = () => {
@@ -51,18 +68,41 @@ const Index = () => {
     setSelectedGame("arithmetic");
     setShowStartScreen(false);
   };
+  
+  const returnToHome = () => {
+    setSelectedGame(null);
+    setShowStartScreen(true);
+    setShowLeaderboard(false);
+  };
 
   const onSubmitPlayerInfo = (data: PlayerFormValues) => {
-    setPlayerInfo({
+    const newPlayerInfo = {
       name: data.name,
       grade: data.grade,
-    });
+    };
+    
+    setPlayerInfo(newPlayerInfo);
+    localStorage.setItem("playerInfo", JSON.stringify(newPlayerInfo));
+  };
+  
+  const viewLeaderboard = () => {
+    // Refresh leaderboard data
+    const entries = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+    setLeaderboardEntries(entries);
+    setShowLeaderboard(true);
+  };
+  
+  const clearLeaderboard = () => {
+    if (window.confirm("Isso irá apagar todo o histórico de pontuações. Confirmar?")) {
+      localStorage.removeItem("leaderboard");
+      setLeaderboardEntries([]);
+    }
   };
 
   if (selectedGame === "arithmetic") {
     return (
       <div className="bg-gradient-to-b from-game-light to-game-background min-h-screen">
-        <ArithmeticGame initialOperationType={operationType} />
+        <ArithmeticGame initialOperationType={operationType} onReturnHome={returnToHome} />
       </div>
     );
   }
@@ -70,7 +110,35 @@ const Index = () => {
   if (selectedGame === "fractions") {
     return (
       <div className="bg-gradient-to-b from-game-light to-game-background min-h-screen">
-        <FractionsGame />
+        <FractionsGame onReturnHome={returnToHome} />
+      </div>
+    );
+  }
+  
+  if (showLeaderboard) {
+    return (
+      <div className="bg-gradient-to-b from-game-light to-game-background min-h-screen py-10">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="bg-white p-6 rounded-2xl shadow-lg">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold text-game-primary">Histórico de Pontuações</h2>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button 
+                  variant="outline" 
+                  className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                  onClick={clearLeaderboard}
+                >
+                  Limpar Histórico
+                </Button>
+                <Button onClick={returnToHome}>
+                  Voltar
+                </Button>
+              </div>
+            </div>
+            
+            <LeaderboardTable entries={leaderboardEntries} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -110,6 +178,7 @@ const Index = () => {
                       <FormControl>
                         <Input placeholder="Digite seu nome" {...field} />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -123,6 +192,7 @@ const Index = () => {
                       <FormControl>
                         <Input placeholder="Digite sua série" {...field} />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -181,6 +251,16 @@ const Index = () => {
                   </Button>
                 ))}
               </motion.div>
+            )}
+            
+            {leaderboardEntries.length > 0 && (
+              <Button 
+                variant="outline"
+                onClick={viewLeaderboard}
+                className="mt-4"
+              >
+                Ver Histórico de Pontuações
+              </Button>
             )}
           </motion.div>
         )}

@@ -5,16 +5,19 @@ import GameScreen from "./GameScreen";
 import EndScreen from "./EndScreen";
 import SoundEffects from "./SoundEffects";
 import { motion } from "framer-motion";
+import LeaderboardTable, { LeaderboardEntry } from "./LeaderboardTable";
 
 interface ArithmeticGameProps {
   initialOperationType?: string;
+  onReturnHome: () => void;
 }
 
-const ArithmeticGame = ({ initialOperationType }: ArithmeticGameProps = {}) => {
-  const [gameState, setGameState] = useState<"start" | "playing" | "end">("start");
+const ArithmeticGame = ({ initialOperationType, onReturnHome }: ArithmeticGameProps) => {
+  const [gameState, setGameState] = useState<"start" | "playing" | "end" | "leaderboard">("start");
   const [currentLevel, setCurrentLevel] = useState(0);
   const [score, setScore] = useState(0);
   const [operationType, setOperationType] = useState(initialOperationType || "soma");
+  const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
   const maxLevels = 20;
 
   useEffect(() => {
@@ -22,6 +25,10 @@ const ArithmeticGame = ({ initialOperationType }: ArithmeticGameProps = {}) => {
     const params = new URLSearchParams(window.location.search);
     const tipo = params.get("tipo") || initialOperationType || "soma";
     setOperationType(tipo);
+    
+    // Load leaderboard
+    const entries = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+    setLeaderboardEntries(entries);
   }, [initialOperationType]);
 
   const startGame = () => {
@@ -40,6 +47,13 @@ const ArithmeticGame = ({ initialOperationType }: ArithmeticGameProps = {}) => {
 
   const restartGame = () => {
     setGameState("start");
+  };
+  
+  const viewLeaderboard = () => {
+    // Refresh leaderboard data
+    const entries = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+    setLeaderboardEntries(entries);
+    setGameState("leaderboard");
   };
 
   return (
@@ -67,7 +81,34 @@ const ArithmeticGame = ({ initialOperationType }: ArithmeticGameProps = {}) => {
       )}
       
       {gameState === "end" && (
-        <EndScreen score={score} onRestart={restartGame} />
+        <EndScreen 
+          score={score} 
+          onRestart={restartGame} 
+          onViewLeaderboard={viewLeaderboard}
+          gameType={operationType}
+        />
+      )}
+      
+      {gameState === "leaderboard" && (
+        <div className="bg-white p-6 rounded-xl shadow-lg">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-game-primary">Histórico de Pontuações</h2>
+            <div className="flex gap-2">
+              <Button 
+                className="bg-game-secondary hover:bg-game-secondary/80"
+                onClick={restartGame}
+              >
+                Voltar ao Jogo
+              </Button>
+              <Button
+                onClick={onReturnHome}
+              >
+                Página Inicial
+              </Button>
+            </div>
+          </div>
+          <LeaderboardTable entries={leaderboardEntries} />
+        </div>
       )}
     </motion.div>
   );

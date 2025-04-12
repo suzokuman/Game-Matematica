@@ -1,20 +1,33 @@
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import StartScreen from "./StartScreen";
 import EndScreen from "./EndScreen";
 import { useSoundEffects } from "./SoundEffects";
 import { Button } from "@/components/ui/button";
+import LeaderboardTable, { LeaderboardEntry } from "./LeaderboardTable";
 
-const FractionsGame = () => {
-  const [gameState, setGameState] = useState<"start" | "playing" | "end">("start");
+interface FractionsGameProps {
+  onReturnHome: () => void;
+}
+
+const FractionsGame = ({ onReturnHome }: FractionsGameProps) => {
+  const [gameState, setGameState] = useState<"start" | "playing" | "end" | "leaderboard">("start");
   const [currentLevel, setCurrentLevel] = useState(0);
   const [score, setScore] = useState(0);
+  const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
   const { playCorrect, playWrong } = useSoundEffects();
 
   const levels = [
     "1/2", "1/3", "1/4", "3/4", "2/3", "3/5", "4/5", "1/5", "1/6", "5/6",
     "1/8", "3/8", "5/8", "7/8", "2/6", "2/4", "3/6", "1/10", "3/10", "9/10"
   ];
+  
+  useEffect(() => {
+    // Load leaderboard
+    const entries = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+    setLeaderboardEntries(entries);
+  }, []);
 
   const startGame = () => {
     setGameState("playing");
@@ -28,6 +41,13 @@ const FractionsGame = () => {
 
   const restartGame = () => {
     setGameState("start");
+  };
+  
+  const viewLeaderboard = () => {
+    // Refresh leaderboard data
+    const entries = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+    setLeaderboardEntries(entries);
+    setGameState("leaderboard");
   };
 
   const generatePizzaGradient = (fraction: string) => {
@@ -134,7 +154,38 @@ const FractionsGame = () => {
 
   if (gameState === "end") {
     return (
-      <EndScreen score={score} onRestart={restartGame} />
+      <EndScreen 
+        score={score} 
+        onRestart={restartGame} 
+        onViewLeaderboard={viewLeaderboard}
+        gameType="frações"
+      />
+    );
+  }
+  
+  if (gameState === "leaderboard") {
+    return (
+      <div className="container mx-auto py-8 px-4 max-w-4xl">
+        <div className="bg-white p-6 rounded-xl shadow-lg">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-game-primary">Histórico de Pontuações</h2>
+            <div className="flex gap-2">
+              <Button 
+                className="bg-game-secondary hover:bg-game-secondary/80"
+                onClick={restartGame}
+              >
+                Voltar ao Jogo
+              </Button>
+              <Button 
+                onClick={onReturnHome}
+              >
+                Página Inicial
+              </Button>
+            </div>
+          </div>
+          <LeaderboardTable entries={leaderboardEntries} />
+        </div>
+      </div>
     );
   }
 
