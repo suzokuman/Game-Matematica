@@ -58,17 +58,25 @@ const Index = () => {
     try {
       const data = await getLeaderboardEntries();
       
-      // Mapear dados do banco para o formato do componente
-      const formattedEntries: LeaderboardEntry[] = data.map((entry: LeaderboardEntryDB) => ({
-        id: entry.id,
-        name: entry.name,
-        grade: entry.grade,
-        score: entry.score,
-        gameType: entry.game_type,
-        date: entry.created_at 
-          ? format(new Date(entry.created_at), "dd/MM/yyyy", { locale: ptBR })
-          : format(new Date(), "dd/MM/yyyy", { locale: ptBR })
-      }));
+      // Definir um formato consistente para as entradas da tabela
+      let formattedEntries: LeaderboardEntry[];
+
+      // Se vieram do banco, formatar as datas
+      if (data.length > 0 && 'created_at' in data[0]) {
+        formattedEntries = data.map((entry: LeaderboardEntryDB) => ({
+          id: entry.id,
+          name: entry.name,
+          grade: entry.grade,
+          score: entry.score,
+          gameType: entry.game_type,
+          date: entry.created_at 
+            ? format(new Date(entry.created_at), "dd/MM/yyyy", { locale: ptBR })
+            : format(new Date(), "dd/MM/yyyy", { locale: ptBR })
+        }));
+      } else {
+        // Caso contrário, assumimos que já estão no formato local
+        formattedEntries = data as unknown as LeaderboardEntry[];
+      }
       
       setLeaderboardEntries(formattedEntries);
     } catch (error) {

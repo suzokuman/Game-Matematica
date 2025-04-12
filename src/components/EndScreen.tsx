@@ -19,7 +19,7 @@ const EndScreen: React.FC<EndScreenProps> = ({ score, onRestart, onViewLeaderboa
 
   useEffect(() => {
     const saveScore = async () => {
-      // Ainda mantemos o localStorage para retro-compatibilidade
+      // Pegando informações do jogador do localStorage
       const playerInfo = JSON.parse(localStorage.getItem("playerInfo") || "{}");
       
       if (playerInfo.name && playerInfo.grade) {
@@ -35,22 +35,28 @@ const EndScreen: React.FC<EndScreenProps> = ({ score, onRestart, onViewLeaderboa
           date: new Date().toLocaleDateString("pt-BR")
         };
         
+        // Salvamos no localStorage por compatibilidade e como backup
         leaderboardEntries.push(newEntry);
         localStorage.setItem("leaderboard", JSON.stringify(leaderboardEntries));
 
-        // Salva no Supabase
+        // Tenta salvar no Supabase
         setIsSaving(true);
         try {
-          await saveLeaderboardEntry({
+          const success = await saveLeaderboardEntry({
             name: playerInfo.name,
             grade: playerInfo.grade,
             score,
             game_type: gameType === "frações" ? "Frações" : `Aritmética (${gameType})`
           });
-          toast.success("Pontuação salva com sucesso!");
+          
+          if (success) {
+            toast.success("Pontuação salva com sucesso!");
+          } else {
+            toast.info("Pontuação salva localmente");
+          }
         } catch (error) {
           console.error("Erro ao salvar pontuação:", error);
-          toast.error("Erro ao salvar pontuação");
+          toast.error("Erro ao salvar pontuação no servidor");
         } finally {
           setIsSaving(false);
         }
