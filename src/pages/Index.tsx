@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import ArithmeticGame from "../components/ArithmeticGame";
 import FractionsGame from "../components/FractionsGame";
@@ -10,6 +9,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import LeaderboardTable, { LeaderboardEntry } from "@/components/LeaderboardTable";
+import { getLeaderboardEntries, LeaderboardEntryDB } from "@/lib/supabase";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const playerSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -26,6 +28,7 @@ const Index = () => {
   const [playerInfo, setPlayerInfo] = useState<{ name: string; grade: string } | null>(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerSchema),
@@ -48,11 +51,35 @@ const Index = () => {
         console.error("Error loading player info:", e);
       }
     }
-    
-    // Load leaderboard entries
-    const entries = JSON.parse(localStorage.getItem("leaderboard") || "[]");
-    setLeaderboardEntries(entries);
   }, []);
+
+  const loadLeaderboardData = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getLeaderboardEntries();
+      
+      // Mapear dados do banco para o formato do componente
+      const formattedEntries: LeaderboardEntry[] = data.map((entry: LeaderboardEntryDB) => ({
+        id: entry.id,
+        name: entry.name,
+        grade: entry.grade,
+        score: entry.score,
+        gameType: entry.game_type,
+        date: entry.created_at 
+          ? format(new Date(entry.created_at), "dd/MM/yyyy", { locale: ptBR })
+          : format(new Date(), "dd/MM/yyyy", { locale: ptBR })
+      }));
+      
+      setLeaderboardEntries(formattedEntries);
+    } catch (error) {
+      console.error("Erro ao carregar pontuações:", error);
+      // Fallback para localStorage se houver erro
+      const entries = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+      setLeaderboardEntries(entries);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const toggleArithmeticMenu = () => {
     setShowArithmeticMenu(prev => !prev);
@@ -85,17 +112,16 @@ const Index = () => {
     localStorage.setItem("playerInfo", JSON.stringify(newPlayerInfo));
   };
   
-  const viewLeaderboard = () => {
-    // Refresh leaderboard data
-    const entries = JSON.parse(localStorage.getItem("leaderboard") || "[]");
-    setLeaderboardEntries(entries);
+  const viewLeaderboard = async () => {
+    await loadLeaderboardData();
     setShowLeaderboard(true);
   };
   
   const clearLeaderboard = () => {
-    if (window.confirm("Isso irá apagar todo o histórico de pontuações. Confirmar?")) {
+    if (window.confirm("Isso irá apagar todo o histórico de pontuações local. Confirmar?")) {
       localStorage.removeItem("leaderboard");
       setLeaderboardEntries([]);
+      // Nota: Não removemos os dados do Supabase ao limpar o histórico local
     }
   };
 
@@ -128,7 +154,7 @@ const Index = () => {
                   className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
                   onClick={clearLeaderboard}
                 >
-                  Limpar Histórico
+                  Limpar Histórico Local
                 </Button>
                 <Button onClick={returnToHome}>
                   Voltar
@@ -136,7 +162,7 @@ const Index = () => {
               </div>
             </div>
             
-            <LeaderboardTable entries={leaderboardEntries} />
+            <LeaderboardTable entries={leaderboardEntries} isLoading={isLoading} />
           </div>
         </div>
       </div>
@@ -253,15 +279,13 @@ const Index = () => {
               </motion.div>
             )}
             
-            {leaderboardEntries.length > 0 && (
-              <Button 
-                variant="outline"
-                onClick={viewLeaderboard}
-                className="mt-4"
-              >
-                Ver Histórico de Pontuações
-              </Button>
-            )}
+            <Button 
+              variant="outline"
+              onClick={viewLeaderboard}
+              className="mt-4"
+            >
+              Ver Histórico de Pontuações
+            </Button>
           </motion.div>
         )}
       </motion.div>

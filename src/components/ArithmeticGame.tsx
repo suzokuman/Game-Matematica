@@ -6,6 +6,10 @@ import EndScreen from "./EndScreen";
 import SoundEffects from "./SoundEffects";
 import { motion } from "framer-motion";
 import LeaderboardTable, { LeaderboardEntry } from "./LeaderboardTable";
+import { Button } from "@/components/ui/button";
+import { getLeaderboardEntries, LeaderboardEntryDB } from "@/lib/supabase";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface ArithmeticGameProps {
   initialOperationType?: string;
@@ -18,6 +22,7 @@ const ArithmeticGame = ({ initialOperationType, onReturnHome }: ArithmeticGamePr
   const [score, setScore] = useState(0);
   const [operationType, setOperationType] = useState(initialOperationType || "soma");
   const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const maxLevels = 20;
 
   useEffect(() => {
@@ -25,11 +30,35 @@ const ArithmeticGame = ({ initialOperationType, onReturnHome }: ArithmeticGamePr
     const params = new URLSearchParams(window.location.search);
     const tipo = params.get("tipo") || initialOperationType || "soma";
     setOperationType(tipo);
-    
-    // Load leaderboard
-    const entries = JSON.parse(localStorage.getItem("leaderboard") || "[]");
-    setLeaderboardEntries(entries);
   }, [initialOperationType]);
+
+  const loadLeaderboardData = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getLeaderboardEntries();
+      
+      // Mapear dados do banco para o formato do componente
+      const formattedEntries: LeaderboardEntry[] = data.map((entry: LeaderboardEntryDB) => ({
+        id: entry.id,
+        name: entry.name,
+        grade: entry.grade,
+        score: entry.score,
+        gameType: entry.game_type,
+        date: entry.created_at 
+          ? format(new Date(entry.created_at), "dd/MM/yyyy", { locale: ptBR })
+          : format(new Date(), "dd/MM/yyyy", { locale: ptBR })
+      }));
+      
+      setLeaderboardEntries(formattedEntries);
+    } catch (error) {
+      console.error("Erro ao carregar pontuações:", error);
+      // Fallback para localStorage se houver erro
+      const entries = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+      setLeaderboardEntries(entries);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const startGame = () => {
     setGameState("playing");
@@ -49,10 +78,8 @@ const ArithmeticGame = ({ initialOperationType, onReturnHome }: ArithmeticGamePr
     setGameState("start");
   };
   
-  const viewLeaderboard = () => {
-    // Refresh leaderboard data
-    const entries = JSON.parse(localStorage.getItem("leaderboard") || "[]");
-    setLeaderboardEntries(entries);
+  const viewLeaderboard = async () => {
+    await loadLeaderboardData();
     setGameState("leaderboard");
   };
 
@@ -107,7 +134,7 @@ const ArithmeticGame = ({ initialOperationType, onReturnHome }: ArithmeticGamePr
               </Button>
             </div>
           </div>
-          <LeaderboardTable entries={leaderboardEntries} />
+          <LeaderboardTable entries={leaderboardEntries} isLoading={isLoading} />
         </div>
       )}
     </motion.div>

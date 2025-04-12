@@ -3,6 +3,7 @@ import React from "react";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export interface LeaderboardEntry {
+  id?: number;
   name: string;
   grade: string;
   score: number;
@@ -12,9 +13,10 @@ export interface LeaderboardEntry {
 
 interface LeaderboardTableProps {
   entries: LeaderboardEntry[];
+  isLoading?: boolean;
 }
 
-const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ entries }) => {
+const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ entries, isLoading = false }) => {
   return (
     <Table>
       <TableCaption>Histórico de Pontuações</TableCaption>
@@ -28,13 +30,17 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ entries }) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {entries.length === 0 ? (
+        {isLoading ? (
+          <TableRow>
+            <TableCell colSpan={5} className="text-center">Carregando pontuações...</TableCell>
+          </TableRow>
+        ) : entries.length === 0 ? (
           <TableRow>
             <TableCell colSpan={5} className="text-center">Nenhuma pontuação registrada ainda</TableCell>
           </TableRow>
         ) : (
           entries.map((entry, index) => (
-            <TableRow key={index}>
+            <TableRow key={entry.id || index}>
               <TableCell>{entry.name}</TableCell>
               <TableCell>{entry.grade}</TableCell>
               <TableCell>{entry.gameType}</TableCell>

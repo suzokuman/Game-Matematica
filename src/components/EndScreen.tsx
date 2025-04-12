@@ -2,8 +2,10 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Confetti } from "./Confetti";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { LeaderboardEntry } from "./LeaderboardTable";
+import { saveLeaderboardEntry } from "@/lib/supabase";
+import { toast } from "sonner";
 
 interface EndScreenProps {
   score: number;
@@ -13,26 +15,49 @@ interface EndScreenProps {
 }
 
 const EndScreen: React.FC<EndScreenProps> = ({ score, onRestart, onViewLeaderboard, gameType }) => {
+  const [isSaving, setIsSaving] = useState(false);
+
   useEffect(() => {
-    // Save score to localStorage
-    const playerInfo = JSON.parse(localStorage.getItem("playerInfo") || "{}");
-    
-    if (playerInfo.name && playerInfo.grade) {
-      const leaderboardEntries: LeaderboardEntry[] = JSON.parse(
-        localStorage.getItem("leaderboard") || "[]"
-      );
+    const saveScore = async () => {
+      // Ainda mantemos o localStorage para retro-compatibilidade
+      const playerInfo = JSON.parse(localStorage.getItem("playerInfo") || "{}");
       
-      const newEntry: LeaderboardEntry = {
-        name: playerInfo.name,
-        grade: playerInfo.grade,
-        score,
-        gameType: gameType === "frações" ? "Frações" : `Aritmética (${gameType})`,
-        date: new Date().toLocaleDateString("pt-BR")
-      };
-      
-      leaderboardEntries.push(newEntry);
-      localStorage.setItem("leaderboard", JSON.stringify(leaderboardEntries));
-    }
+      if (playerInfo.name && playerInfo.grade) {
+        const leaderboardEntries: LeaderboardEntry[] = JSON.parse(
+          localStorage.getItem("leaderboard") || "[]"
+        );
+        
+        const newEntry: LeaderboardEntry = {
+          name: playerInfo.name,
+          grade: playerInfo.grade,
+          score,
+          gameType: gameType === "frações" ? "Frações" : `Aritmética (${gameType})`,
+          date: new Date().toLocaleDateString("pt-BR")
+        };
+        
+        leaderboardEntries.push(newEntry);
+        localStorage.setItem("leaderboard", JSON.stringify(leaderboardEntries));
+
+        // Salva no Supabase
+        setIsSaving(true);
+        try {
+          await saveLeaderboardEntry({
+            name: playerInfo.name,
+            grade: playerInfo.grade,
+            score,
+            game_type: gameType === "frações" ? "Frações" : `Aritmética (${gameType})`
+          });
+          toast.success("Pontuação salva com sucesso!");
+        } catch (error) {
+          console.error("Erro ao salvar pontuação:", error);
+          toast.error("Erro ao salvar pontuação");
+        } finally {
+          setIsSaving(false);
+        }
+      }
+    };
+
+    saveScore();
   }, [score, gameType]);
 
   return (
@@ -63,6 +88,7 @@ const EndScreen: React.FC<EndScreenProps> = ({ score, onRestart, onViewLeaderboa
           <Button 
             className="game-button"
             onClick={onRestart}
+            disabled={isSaving}
           >
             Jogar Novamente
           </Button>
@@ -70,10 +96,15 @@ const EndScreen: React.FC<EndScreenProps> = ({ score, onRestart, onViewLeaderboa
           <Button 
             className="bg-game-secondary hover:bg-game-secondary/80" 
             onClick={onViewLeaderboard}
+            disabled={isSaving}
           >
             Ver Histórico
           </Button>
         </div>
+        
+        {isSaving && (
+          <p className="mt-4 text-sm text-gray-500">Salvando pontuação...</p>
+        )}
       </div>
     </motion.div>
   );
