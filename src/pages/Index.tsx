@@ -12,6 +12,8 @@ import LeaderboardTable, { LeaderboardEntry } from "@/components/LeaderboardTabl
 import { getLeaderboardEntries, LeaderboardEntryDB } from "@/lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import AdminPasswordModal from "@/components/AdminPasswordModal";
+import { toast } from "sonner";
 
 const playerSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -29,6 +31,7 @@ const Index = () => {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
   
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerSchema),
@@ -41,7 +44,6 @@ const Index = () => {
   useEffect(() => {
     document.title = "Jogo Educativo de Matemática";
     
-    // Try to load player info from localStorage
     const savedPlayerInfo = localStorage.getItem("playerInfo");
     if (savedPlayerInfo) {
       try {
@@ -58,10 +60,8 @@ const Index = () => {
     try {
       const data = await getLeaderboardEntries();
       
-      // Definir um formato consistente para as entradas da tabela
       let formattedEntries: LeaderboardEntry[];
 
-      // Se vieram do banco, formatar as datas
       if (data.length > 0 && 'created_at' in data[0]) {
         formattedEntries = data.map((entry: LeaderboardEntryDB) => ({
           id: entry.id,
@@ -74,14 +74,12 @@ const Index = () => {
             : format(new Date(), "dd/MM/yyyy", { locale: ptBR })
         }));
       } else {
-        // Caso contrário, assumimos que já estão no formato local
         formattedEntries = data as unknown as LeaderboardEntry[];
       }
       
       setLeaderboardEntries(formattedEntries);
     } catch (error) {
       console.error("Erro ao carregar pontuações:", error);
-      // Fallback para localStorage se houver erro
       const entries = JSON.parse(localStorage.getItem("leaderboard") || "[]");
       setLeaderboardEntries(entries);
     } finally {
@@ -120,7 +118,12 @@ const Index = () => {
     localStorage.setItem("playerInfo", JSON.stringify(newPlayerInfo));
   };
   
-  const viewLeaderboard = async () => {
+  const handleViewLeaderboard = () => {
+    setShowAdminModal(true);
+  };
+
+  const handleAdminSuccess = async () => {
+    setShowAdminModal(false);
     await loadLeaderboardData();
     setShowLeaderboard(true);
   };
@@ -129,7 +132,6 @@ const Index = () => {
     if (window.confirm("Isso irá apagar todo o histórico de pontuações local. Confirmar?")) {
       localStorage.removeItem("leaderboard");
       setLeaderboardEntries([]);
-      // Nota: Não removemos os dados do Supabase ao limpar o histórico local
     }
   };
 
@@ -289,14 +291,20 @@ const Index = () => {
             
             <Button 
               variant="outline"
-              onClick={viewLeaderboard}
+              onClick={handleViewLeaderboard}
               className="mt-4"
             >
-              Ver Histórico de Pontuações
+              Ver Histórico de Pontuações (Admin)
             </Button>
           </motion.div>
         )}
       </motion.div>
+      
+      <AdminPasswordModal 
+        isOpen={showAdminModal}
+        onClose={() => setShowAdminModal(false)}
+        onSuccess={handleAdminSuccess}
+      />
     </div>
   );
 };
