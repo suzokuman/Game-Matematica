@@ -18,10 +18,16 @@ const FractionsGame = ({ onReturnHome }: FractionsGameProps) => {
   const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
   const { playCorrect, playWrong } = useSoundEffects();
 
-  const levels = [
-    "1/2", "1/3", "1/4", "3/4", "2/3", "3/5", "4/5", "1/5", "1/6", "5/6",
-    "1/8", "3/8", "5/8", "7/8", "2/6", "2/4", "3/6", "1/10", "3/10", "9/10"
-  ];
+  // Lista completa de frações disponíveis por complexidade
+  const allFractions = {
+    easy: ["1/2", "1/3", "1/4", "3/4", "2/3", "3/5"],
+    medium: ["4/5", "1/5", "1/6", "5/6", "2/6", "2/4", "3/6"],
+    hard: ["1/8", "3/8", "5/8", "7/8", "1/10", "3/10", "9/10"]
+  };
+  
+  // Estado para armazenar a sequência aleatória de frações
+  const [fractionSequence, setFractionSequence] = useState<string[]>([]);
+  const [usedFractions, setUsedFractions] = useState<string[]>([]);
   
   useEffect(() => {
     // Load leaderboard
@@ -29,7 +35,25 @@ const FractionsGame = ({ onReturnHome }: FractionsGameProps) => {
     setLeaderboardEntries(entries);
   }, []);
 
+  // Gera uma sequência aleatória de frações baseada no nível de dificuldade
+  const generateRandomFractionSequence = () => {
+    // Combina todas as frações disponíveis
+    const allAvailableFractions = [
+      ...allFractions.easy,
+      ...allFractions.medium,
+      ...allFractions.hard
+    ];
+    
+    // Embaralha o array de frações
+    const shuffled = [...allAvailableFractions].sort(() => Math.random() - 0.5);
+    
+    // Define a sequência embaralhada
+    setFractionSequence(shuffled);
+    setUsedFractions([]);
+  };
+
   const startGame = () => {
+    generateRandomFractionSequence();
     setGameState("playing");
     setCurrentLevel(0);
     setScore(0);
@@ -67,7 +91,7 @@ const FractionsGame = ({ onReturnHome }: FractionsGameProps) => {
   };
 
   const handleDrop = (value: string) => {
-    const correctValue = levels[currentLevel];
+    const correctValue = fractionSequence[currentLevel];
 
     if (value === correctValue) {
       setDropStatus("correct");
@@ -75,8 +99,11 @@ const FractionsGame = ({ onReturnHome }: FractionsGameProps) => {
       playCorrect();
       setScore(prevScore => prevScore + 1);
       
+      // Adiciona a fração à lista de usadas
+      setUsedFractions(prev => [...prev, correctValue]);
+      
       setTimeout(() => {
-        if (currentLevel + 1 >= levels.length) {
+        if (currentLevel + 1 >= fractionSequence.length) {
           endGame();
         } else {
           setCurrentLevel(prevLevel => prevLevel + 1);
@@ -97,11 +124,11 @@ const FractionsGame = ({ onReturnHome }: FractionsGameProps) => {
   const [options, setOptions] = useState<string[]>([]);
 
   useEffect(() => {
-    if (gameState === "playing") {
-      const fraction = levels[currentLevel];
+    if (gameState === "playing" && fractionSequence.length > 0) {
+      const fraction = fractionSequence[currentLevel];
       setOptions(generateOptions(fraction));
     }
-  }, [currentLevel, gameState]);
+  }, [currentLevel, gameState, fractionSequence]);
 
   const Fraction = ({ value, onDragStart }: { value: string, onDragStart: () => void }) => {
     const [num, den] = value.split("/");
@@ -189,6 +216,10 @@ const FractionsGame = ({ onReturnHome }: FractionsGameProps) => {
     );
   }
 
+  if (fractionSequence.length === 0) {
+    return <div>Carregando...</div>;
+  }
+
   return (
     <motion.div 
       className="container mx-auto py-8 px-4 max-w-4xl"
@@ -198,7 +229,7 @@ const FractionsGame = ({ onReturnHome }: FractionsGameProps) => {
     >
       <div className="bg-white p-4 rounded-xl shadow-md mb-4 w-full max-w-md mx-auto flex justify-between items-center">
         <div className="text-lg font-medium">
-          <span className="text-game-primary">Nível {currentLevel + 1}</span> / {levels.length}
+          <span className="text-game-primary">Nível {currentLevel + 1}</span> / {fractionSequence.length}
         </div>
         <div className="text-lg font-semibold">
           Pontos: <span className={score >= 0 ? "text-game-correct" : "text-game-wrong"}>{score}</span>
@@ -212,7 +243,7 @@ const FractionsGame = ({ onReturnHome }: FractionsGameProps) => {
       <div 
         className="w-[200px] h-[200px] rounded-full mx-auto mb-8 border-4 border-red-600"
         style={{ 
-          background: generatePizzaGradient(levels[currentLevel]) 
+          background: generatePizzaGradient(fractionSequence[currentLevel]) 
         }}
       ></div>
 

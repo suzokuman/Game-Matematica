@@ -28,6 +28,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const [options, setOptions] = useState<number[]>([]);
   const [dropStatus, setDropStatus] = useState<"idle" | "correct" | "wrong">("idle");
   const [dropMessage, setDropMessage] = useState("Solte aqui a resposta correta");
+  const [usedProblemSets, setUsedProblemSets] = useState<string[]>([]);
   
   const { playCorrect, playWrong } = useSoundEffects();
 
@@ -53,10 +54,10 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
   };
 
-  // Gera 6 opções (1 correta + 5 erradas) - aumentado de 5 para 6
+  // Gera 6 opções (1 correta + 5 erradas)
   const generateOptions = (correct: number) => {
     const optionsSet = new Set([correct]);
-    while (optionsSet.size < 6) { // Mudado para 6 opções
+    while (optionsSet.size < 6) {
       const offset = Math.floor(Math.random() * 10) + 1;
       optionsSet.add(correct + (Math.random() < 0.5 ? offset : -offset));
     }
@@ -71,6 +72,10 @@ const GameScreen: React.FC<GameScreenProps> = ({
       setDropMessage(`Correto! Resposta: ${value}`);
       playCorrect();
       onScoreChange(score + 1);
+      
+      // Adiciona o par atual à lista de problemas usados
+      const problemKey = `${num1}-${num2}-${operationType}`;
+      setUsedProblemSets(prev => [...prev, problemKey]);
       
       setTimeout(() => {
         onNextLevel();
@@ -88,21 +93,38 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const loadProblem = () => {
     const digits = currentLevel < 5 ? 1 : currentLevel < 10 ? 2 : currentLevel < 15 ? 3 : 4;
     
-    // Para divisão, garantir que o resultado seja um número inteiro
-    let a = generateNumber(digits);
-    let b = generateNumber(digits);
+    let a: number;
+    let b: number;
+    let problemKey: string;
+    let attempts = 0;
+    const maxAttempts = 10; // Limite para evitar loops infinitos
     
-    if (operationType === "divisao") {
-      // Garantir que b não é zero
-      b = b === 0 ? 1 : b;
-      // Fazer com que a seja múltiplo de b para garantir divisão exata
-      a = b * Math.floor((generateNumber(digits) / b) + 1);
-    }
-    
-    // Para subtração, garantir que a > b para evitar números negativos (opcional)
-    if (operationType === "subtracao" && a < b) {
-      [a, b] = [b, a];
-    }
+    // Tenta gerar um problema que ainda não foi usado
+    do {
+      // Para divisão, garantir que o resultado seja um número inteiro
+      a = generateNumber(digits);
+      b = generateNumber(digits);
+      
+      if (operationType === "divisao") {
+        // Garantir que b não é zero
+        b = b === 0 ? 1 : b;
+        // Fazer com que a seja múltiplo de b para garantir divisão exata
+        a = b * Math.floor((generateNumber(digits) / b) + 1);
+      }
+      
+      // Para subtração, garantir que a > b para evitar números negativos
+      if (operationType === "subtracao" && a < b) {
+        [a, b] = [b, a];
+      }
+      
+      problemKey = `${a}-${b}-${operationType}`;
+      attempts++;
+      
+      // Se já tentamos muitas vezes ou não há problemas usados ainda, aceitamos o problema gerado
+      if (attempts >= maxAttempts || usedProblemSets.length === 0) {
+        break;
+      }
+    } while (usedProblemSets.includes(problemKey));
     
     setNum1(a);
     setNum2(b);
@@ -111,6 +133,12 @@ const GameScreen: React.FC<GameScreenProps> = ({
     setOptions(generateOptions(correct));
   };
 
+  // Limpa os problemas usados quando mudamos de operação
+  useEffect(() => {
+    setUsedProblemSets([]);
+  }, [operationType]);
+
+  // Carrega um novo problema quando o nível avança
   useEffect(() => {
     loadProblem();
   }, [currentLevel, operationType]);
