@@ -73,24 +73,6 @@ const PizzaFraction: React.FC<PizzaFractionProps> = ({ fraction }) => {
         ctx.stroke();
       }
     }
-    
-    // Add numbers to slices if there are not too many
-    if (den <= 12) {
-      ctx.font = '16px Arial';
-      ctx.fillStyle = '#333333';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      
-      for (let i = 0; i < den; i++) {
-        const angle = i * sliceAngle + sliceAngle / 2;
-        const textRadius = radius * 0.7;
-        const x = centerX + textRadius * Math.cos(angle);
-        const y = centerY + textRadius * Math.sin(angle);
-        
-        ctx.fillText((i + 1).toString(), x, y);
-      }
-    }
-    
   }, [fraction]);
   
   return (
