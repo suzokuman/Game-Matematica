@@ -1,24 +1,110 @@
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 interface PizzaFractionProps {
   fraction: string;
 }
 
 const PizzaFraction: React.FC<PizzaFractionProps> = ({ fraction }) => {
-  const generatePizzaGradient = (fraction: string) => {
-    const [num, den] = fraction.split("/").map(Number);
-    const percent = (num / den) * 100;
-    return `conic-gradient(#ff9999 0% ${percent}%, #ffffff ${percent}% 100%)`;
-  };
-
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [num, den] = fraction.split("/").map(Number);
+  
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const size = canvas.width;
+    const centerX = size / 2;
+    const centerY = size / 2;
+    const radius = size / 2 - 5;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, size, size);
+    
+    // Draw pizza base (white circle with red border)
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#ff3333';
+    ctx.stroke();
+    
+    // Calculate angle for each slice
+    const sliceAngle = (Math.PI * 2) / den;
+    
+    // Draw slices
+    for (let i = 0; i < den; i++) {
+      const startAngle = i * sliceAngle;
+      const endAngle = startAngle + sliceAngle;
+      
+      // Draw slice divider lines
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(
+        centerX + radius * Math.cos(startAngle),
+        centerY + radius * Math.sin(startAngle)
+      );
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ff3333';
+      ctx.stroke();
+      
+      // Fill the active slices (those that are part of the fraction)
+      if (i < num) {
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fillStyle = '#ff9999';
+        ctx.fill();
+        
+        // Re-draw the divider lines for active slices to make them more visible
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(
+          centerX + radius * Math.cos(startAngle),
+          centerY + radius * Math.sin(startAngle)
+        );
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#ff3333';
+        ctx.stroke();
+      }
+    }
+    
+    // Add numbers to slices if there are not too many
+    if (den <= 12) {
+      ctx.font = '16px Arial';
+      ctx.fillStyle = '#333333';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      for (let i = 0; i < den; i++) {
+        const angle = i * sliceAngle + sliceAngle / 2;
+        const textRadius = radius * 0.7;
+        const x = centerX + textRadius * Math.cos(angle);
+        const y = centerY + textRadius * Math.sin(angle);
+        
+        ctx.fillText((i + 1).toString(), x, y);
+      }
+    }
+    
+  }, [fraction]);
+  
   return (
-    <div 
-      className="w-[200px] h-[200px] rounded-full mx-auto mb-8 border-4 border-red-600"
-      style={{ 
-        background: generatePizzaGradient(fraction) 
-      }}
-    />
+    <div className="flex flex-col items-center mb-8">
+      <canvas 
+        ref={canvasRef} 
+        width={200} 
+        height={200} 
+        className="mb-2"
+      />
+      <div className="text-lg font-bold text-center text-game-primary">
+        {num}/{den}
+      </div>
+    </div>
   );
 };
 
