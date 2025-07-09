@@ -2,6 +2,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -27,6 +28,18 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ onSubmitPlayerInfo }) => {
     },
   });
 
+  const gradeOptions = [
+    { value: "1", label: "1º Ano" },
+    { value: "2", label: "2º Ano" },
+    { value: "3", label: "3º Ano" },
+    { value: "4", label: "4º Ano" },
+    { value: "5", label: "5º Ano" },
+    { value: "6", label: "6º Ano" },
+    { value: "7", label: "7º Ano" },
+    { value: "8", label: "8º Ano" },
+    { value: "9", label: "9º Ano" },
+  ];
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmitPlayerInfo)} className="space-y-4">
@@ -50,9 +63,20 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ onSubmitPlayerInfo }) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Série</FormLabel>
-              <FormControl>
-                <Input placeholder="Digite sua série" {...field} />
-              </FormControl>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione sua série" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {gradeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
