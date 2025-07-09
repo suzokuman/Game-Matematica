@@ -101,7 +101,7 @@ const ArithmeticGame = ({ initialOperationType, onReturnHome }: ArithmeticGamePr
       <SoundEffects />
       
       {gameState === "start" && (
-        <StartScreen onStart={startGame} operationType={operationType} />
+        <StartScreen onStart={startGame} operationType={operationType} onReturnHome={onReturnHome} />
       )}
       
       {gameState === "playing" && (
@@ -112,6 +112,7 @@ const ArithmeticGame = ({ initialOperationType, onReturnHome }: ArithmeticGamePr
           operationType={operationType}
           onNextLevel={goToNextLevel}
           onScoreChange={setScore}
+          onReturnHome={onReturnHome}
         />
       )}
       

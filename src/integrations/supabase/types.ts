@@ -29,33 +29,6 @@ export type Database = {
         }
         Relationships: []
       }
-      game_progress: {
-        Row: {
-          current_level: number
-          current_score: number
-          game_type: string
-          id: number
-          last_updated: string
-          user_identifier: string
-        }
-        Insert: {
-          current_level?: number
-          current_score?: number
-          game_type: string
-          id?: number
-          last_updated?: string
-          user_identifier: string
-        }
-        Update: {
-          current_level?: number
-          current_score?: number
-          game_type?: string
-          id?: number
-          last_updated?: string
-          user_identifier?: string
-        }
-        Relationships: []
-      }
       leaderboard: {
         Row: {
           created_at: string

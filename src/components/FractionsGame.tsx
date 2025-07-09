@@ -77,7 +77,7 @@ const FractionsGame = ({ onReturnHome }: FractionsGameProps) => {
 
   if (gameState === "start") {
     return (
-      <StartScreen onStart={startGame} operationType="frações" />
+      <StartScreen onStart={startGame} operationType="frações" onReturnHome={onReturnHome} />
     );
   }
 
@@ -128,6 +128,7 @@ const FractionsGame = ({ onReturnHome }: FractionsGameProps) => {
       onWrongAnswer={handleWrongAnswer}
       playCorrect={playCorrect}
       playWrong={playWrong}
+      onReturnHome={onReturnHome}
     />
   );
 };

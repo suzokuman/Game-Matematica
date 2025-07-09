@@ -5,6 +5,7 @@ import ArithmeticProblem from "./ArithmeticProblem";
 import DraggableOption from "./DraggableOption";
 import DropZone from "./DropZone";
 import { useSoundEffects } from "./SoundEffects";
+import { Button } from "@/components/ui/button";
 
 interface GameScreenProps {
   currentLevel: number;
@@ -13,6 +14,7 @@ interface GameScreenProps {
   operationType: string;
   onNextLevel: () => void;
   onScoreChange: (newScore: number) => void;
+  onReturnHome?: () => void;
 }
 
 const GameScreen: React.FC<GameScreenProps> = ({
@@ -21,7 +23,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
   score,
   operationType,
   onNextLevel,
-  onScoreChange
+  onScoreChange,
+  onReturnHome
 }) => {
   const [num1, setNum1] = useState(0);
   const [num2, setNum2] = useState(0);
@@ -36,8 +39,30 @@ const GameScreen: React.FC<GameScreenProps> = ({
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
+  // Get difficulty based on player grade
+  const getDifficultyByGrade = () => {
+    const playerInfo = JSON.parse(localStorage.getItem("playerInfo") || "{}");
+    const grade = parseInt(playerInfo.grade || "1");
+    
+    switch (grade) {
+      case 1: return { min: 1, max: 1 }; // 1 dígito
+      case 2: return { min: 1, max: 2 }; // 1 a 2 dígitos
+      case 3: 
+      case 4: return { min: 2, max: 2 }; // 2 dígitos
+      case 5: 
+      case 6: return { min: 2, max: 3 }; // 2 a 3 dígitos
+      case 7: return { min: 2, max: 4 }; // 2 a 4 dígitos
+      case 8: return { min: 3, max: 4 }; // 3 a 4 dígitos
+      case 9: return { min: 4, max: 5 }; // 4 a 5 dígitos
+      default: return { min: 1, max: 2 };
+    }
+  };
+
   // Gera número com n dígitos
   const generateNumber = (digits: number) => {
+    if (digits === 1) {
+      return Math.floor(Math.random() * 9) + 1; // 1-9
+    }
     const min = Math.pow(10, digits - 1);
     const max = Math.pow(10, digits) - 1;
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -91,25 +116,33 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const loadProblem = () => {
-    const digits = currentLevel < 5 ? 1 : currentLevel < 10 ? 2 : currentLevel < 15 ? 3 : 4;
+    const difficulty = getDifficultyByGrade();
+    
+    // Progressive difficulty within the grade range
+    const levelProgress = currentLevel / maxLevels;
+    const digitRange = difficulty.max - difficulty.min;
+    const currentMinDigits = difficulty.min + Math.floor(levelProgress * digitRange);
+    const currentMaxDigits = Math.min(difficulty.max, currentMinDigits + 1);
     
     let a: number;
     let b: number;
     let problemKey: string;
     let attempts = 0;
-    const maxAttempts = 10; // Limite para evitar loops infinitos
+    const maxAttempts = 10;
     
-    // Tenta gerar um problema que ainda não foi usado
     do {
-      // Para divisão, garantir que o resultado seja um número inteiro
-      a = generateNumber(digits);
-      b = generateNumber(digits);
+      // Generate numbers based on difficulty
+      const digitsA = Math.floor(Math.random() * (currentMaxDigits - currentMinDigits + 1)) + currentMinDigits;
+      const digitsB = Math.floor(Math.random() * (currentMaxDigits - currentMinDigits + 1)) + currentMinDigits;
+      
+      a = generateNumber(digitsA);
+      b = generateNumber(digitsB);
       
       if (operationType === "divisao") {
         // Garantir que b não é zero
         b = b === 0 ? 1 : b;
         // Fazer com que a seja múltiplo de b para garantir divisão exata
-        a = b * Math.floor((generateNumber(digits) / b) + 1);
+        a = b * Math.floor((generateNumber(digitsA) / b) + 1);
       }
       
       // Para subtração, garantir que a > b para evitar números negativos
@@ -120,7 +153,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
       problemKey = `${a}-${b}-${operationType}`;
       attempts++;
       
-      // Se já tentamos muitas vezes ou não há problemas usados ainda, aceitamos o problema gerado
       if (attempts >= maxAttempts || usedProblemSets.length === 0) {
         break;
       }
@@ -159,9 +191,22 @@ const GameScreen: React.FC<GameScreenProps> = ({
         </div>
       </div>
 
-      <h1 className="text-2xl md:text-3xl font-bold mb-6 text-center">
-        Modo: {capitalize(operationType)}
-      </h1>
+      <div className="flex justify-between items-center w-full max-w-md mb-4">
+        <h1 className="text-2xl md:text-3xl font-bold text-center">
+          Modo: {capitalize(operationType)}
+        </h1>
+        
+        {onReturnHome && (
+          <Button 
+            variant="outline"
+            onClick={onReturnHome}
+            className="border-game-primary text-game-primary hover:bg-game-primary hover:text-white"
+            size="sm"
+          >
+            Voltar
+          </Button>
+        )}
+      </div>
 
       <ArithmeticProblem num1={num1} num2={num2} operationType={operationType} />
       

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Fraction from "./Fraction";
 import FractionDropZone from "./FractionDropZone";
 import PizzaFraction from "./PizzaFraction";
+import { Button } from "@/components/ui/button";
 
 interface GamePlayScreenProps {
   currentLevel: number;
@@ -14,6 +15,7 @@ interface GamePlayScreenProps {
   onWrongAnswer: () => void;
   playCorrect: () => void;
   playWrong: () => void;
+  onReturnHome?: () => void;
 }
 
 const GamePlayScreen: React.FC<GamePlayScreenProps> = ({
@@ -24,17 +26,67 @@ const GamePlayScreen: React.FC<GamePlayScreenProps> = ({
   onCorrectAnswer,
   onWrongAnswer,
   playCorrect,
-  playWrong
+  playWrong,
+  onReturnHome
 }) => {
   const [dropStatus, setDropStatus] = useState<"idle" | "correct" | "wrong">("idle");
   const [dropMessage, setDropMessage] = useState("Solte aqui a fração correta");
   const [options, setOptions] = useState<string[]>([]);
 
+  // Get difficulty-appropriate fractions based on grade
+  const getFractionsByGrade = () => {
+    const playerInfo = JSON.parse(localStorage.getItem("playerInfo") || "{}");
+    const grade = parseInt(playerInfo.grade || "1");
+    
+    let maxNumerator = 1;
+    let maxDenominator = 2;
+    
+    switch (grade) {
+      case 1: 
+        maxNumerator = 1;
+        maxDenominator = 4;
+        break;
+      case 2:
+        maxNumerator = 3;
+        maxDenominator = 6;
+        break;
+      case 3:
+      case 4:
+        maxNumerator = 7;
+        maxDenominator = 8;
+        break;
+      case 5:
+      case 6:
+        maxNumerator = 9;
+        maxDenominator = 12;
+        break;
+      case 7:
+        maxNumerator = 15;
+        maxDenominator = 20;
+        break;
+      case 8:
+        maxNumerator = 99;
+        maxDenominator = 100;
+        break;
+      case 9:
+        maxNumerator = 999;
+        maxDenominator = 1000;
+        break;
+      default:
+        maxNumerator = 3;
+        maxDenominator = 6;
+    }
+    
+    return { maxNumerator, maxDenominator };
+  };
+
   const generateOptions = (correct: string) => {
+    const { maxNumerator, maxDenominator } = getFractionsByGrade();
     const options = new Set([correct]);
+    
     while (options.size < 6) {
-      const n = Math.floor(Math.random() * 9) + 1;
-      const d = Math.floor(Math.random() * 9) + 1;
+      const n = Math.floor(Math.random() * maxNumerator) + 1;
+      const d = Math.floor(Math.random() * maxDenominator) + 2;
       if (n < d) options.add(`${n}/${d}`);
     }
     return Array.from(options).sort(() => Math.random() - 0.5);
@@ -92,9 +144,22 @@ const GamePlayScreen: React.FC<GamePlayScreenProps> = ({
         </div>
       </div>
 
-      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">
-        Jogo das Frações
-      </h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl md:text-3xl font-bold">
+          Jogo das Frações
+        </h2>
+        
+        {onReturnHome && (
+          <Button 
+            variant="outline"
+            onClick={onReturnHome}
+            className="border-game-primary text-game-primary hover:bg-game-primary hover:text-white"
+            size="sm"
+          >
+            Voltar
+          </Button>
+        )}
+      </div>
 
       <PizzaFraction fraction={fractionSequence[currentLevel]} />
 
