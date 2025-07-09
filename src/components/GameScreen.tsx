@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import ArithmeticProblem from "./ArithmeticProblem";
@@ -39,33 +38,29 @@ const GameScreen: React.FC<GameScreenProps> = ({
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
-  // Get difficulty based on player grade - fixed to use exact digit requirements
-  const getDifficultyByGrade = () => {
+  // Get number range based on player grade
+  const getNumberRangeByGrade = () => {
     const playerInfo = JSON.parse(localStorage.getItem("playerInfo") || "{}");
     const grade = parseInt(playerInfo.grade || "1");
     
     switch (grade) {
-      case 1: return { digits: [1] }; // somente 1 dígito
-      case 2: return { digits: [1, 2] }; // 1 a 2 dígitos
+      case 1: return { min: 1, max: 9 }; // 1 a 9
+      case 2: return { min: 1, max: 20 }; // 1 a 20
       case 3: 
-      case 4: return { digits: [2] }; // somente 2 dígitos
+      case 4: return { min: 1, max: 50 }; // 1 a 50
       case 5: 
-      case 6: return { digits: [2, 3] }; // 2 a 3 dígitos
-      case 7: return { digits: [2, 3, 4] }; // 2 a 4 dígitos
-      case 8: return { digits: [3, 4] }; // 3 a 4 dígitos
-      case 9: return { digits: [4, 5] }; // 4 a 5 dígitos
-      default: return { digits: [1, 2] };
+      case 6: return { min: 1, max: 99 }; // 1 a 99
+      case 7: return { min: 1, max: 150 }; // 1 a 150
+      case 8: return { min: 100, max: 999 }; // 100 a 999
+      case 9: return { min: 100, max: 9999 }; // 100 a 9999
+      default: return { min: 1, max: 20 };
     }
   };
 
-  // Gera número com n dígitos exatos
-  const generateNumber = (digits: number) => {
-    if (digits === 1) {
-      return Math.floor(Math.random() * 9) + 1; // 1-9
-    }
-    const min = Math.pow(10, digits - 1);
-    const max = Math.pow(10, digits) - 1;
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  // Gera número dentro da faixa específica
+  const generateNumber = () => {
+    const range = getNumberRangeByGrade();
+    return Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
   };
 
   // Calcula a resposta correta
@@ -82,9 +77,16 @@ const GameScreen: React.FC<GameScreenProps> = ({
   // Gera 6 opções (1 correta + 5 erradas)
   const generateOptions = (correct: number) => {
     const optionsSet = new Set([correct]);
+    const range = getNumberRangeByGrade();
+    
     while (optionsSet.size < 6) {
       const offset = Math.floor(Math.random() * 10) + 1;
-      optionsSet.add(correct + (Math.random() < 0.5 ? offset : -offset));
+      const wrongAnswer = correct + (Math.random() < 0.5 ? offset : -offset);
+      
+      // Garantir que as opções erradas estejam dentro de uma faixa razoável
+      if (wrongAnswer > 0 && wrongAnswer <= range.max * 2) {
+        optionsSet.add(wrongAnswer);
+      }
     }
     return Array.from(optionsSet).sort(() => Math.random() - 0.5);
   };
@@ -116,8 +118,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const loadProblem = () => {
-    const difficulty = getDifficultyByGrade();
-    
     let a: number;
     let b: number;
     let problemKey: string;
@@ -125,19 +125,15 @@ const GameScreen: React.FC<GameScreenProps> = ({
     const maxAttempts = 10;
     
     do {
-      // Escolhe um número de dígitos aleatório dentro dos permitidos para a série
-      const allowedDigits = difficulty.digits;
-      const digitsA = allowedDigits[Math.floor(Math.random() * allowedDigits.length)];
-      const digitsB = allowedDigits[Math.floor(Math.random() * allowedDigits.length)];
-      
-      a = generateNumber(digitsA);
-      b = generateNumber(digitsB);
+      a = generateNumber();
+      b = generateNumber();
       
       if (operationType === "divisao") {
         // Garantir que b não é zero
         b = b === 0 ? 1 : b;
         // Fazer com que a seja múltiplo de b para garantir divisão exata
-        a = b * Math.floor((generateNumber(digitsA) / b) + 1);
+        const multiplier = Math.floor(a / b) + 1;
+        a = b * multiplier;
       }
       
       // Para subtração, garantir que a > b para evitar números negativos
