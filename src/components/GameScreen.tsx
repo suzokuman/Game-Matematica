@@ -39,26 +39,26 @@ const GameScreen: React.FC<GameScreenProps> = ({
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
-  // Get difficulty based on player grade
+  // Get difficulty based on player grade - fixed to use exact digit requirements
   const getDifficultyByGrade = () => {
     const playerInfo = JSON.parse(localStorage.getItem("playerInfo") || "{}");
     const grade = parseInt(playerInfo.grade || "1");
     
     switch (grade) {
-      case 1: return { min: 1, max: 1 }; // 1 dígito
-      case 2: return { min: 1, max: 2 }; // 1 a 2 dígitos
+      case 1: return { digits: [1] }; // somente 1 dígito
+      case 2: return { digits: [1, 2] }; // 1 a 2 dígitos
       case 3: 
-      case 4: return { min: 2, max: 2 }; // 2 dígitos
+      case 4: return { digits: [2] }; // somente 2 dígitos
       case 5: 
-      case 6: return { min: 2, max: 3 }; // 2 a 3 dígitos
-      case 7: return { min: 2, max: 4 }; // 2 a 4 dígitos
-      case 8: return { min: 3, max: 4 }; // 3 a 4 dígitos
-      case 9: return { min: 4, max: 5 }; // 4 a 5 dígitos
-      default: return { min: 1, max: 2 };
+      case 6: return { digits: [2, 3] }; // 2 a 3 dígitos
+      case 7: return { digits: [2, 3, 4] }; // 2 a 4 dígitos
+      case 8: return { digits: [3, 4] }; // 3 a 4 dígitos
+      case 9: return { digits: [4, 5] }; // 4 a 5 dígitos
+      default: return { digits: [1, 2] };
     }
   };
 
-  // Gera número com n dígitos
+  // Gera número com n dígitos exatos
   const generateNumber = (digits: number) => {
     if (digits === 1) {
       return Math.floor(Math.random() * 9) + 1; // 1-9
@@ -118,12 +118,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const loadProblem = () => {
     const difficulty = getDifficultyByGrade();
     
-    // Progressive difficulty within the grade range
-    const levelProgress = currentLevel / maxLevels;
-    const digitRange = difficulty.max - difficulty.min;
-    const currentMinDigits = difficulty.min + Math.floor(levelProgress * digitRange);
-    const currentMaxDigits = Math.min(difficulty.max, currentMinDigits + 1);
-    
     let a: number;
     let b: number;
     let problemKey: string;
@@ -131,9 +125,10 @@ const GameScreen: React.FC<GameScreenProps> = ({
     const maxAttempts = 10;
     
     do {
-      // Generate numbers based on difficulty
-      const digitsA = Math.floor(Math.random() * (currentMaxDigits - currentMinDigits + 1)) + currentMinDigits;
-      const digitsB = Math.floor(Math.random() * (currentMaxDigits - currentMinDigits + 1)) + currentMinDigits;
+      // Escolhe um número de dígitos aleatório dentro dos permitidos para a série
+      const allowedDigits = difficulty.digits;
+      const digitsA = allowedDigits[Math.floor(Math.random() * allowedDigits.length)];
+      const digitsB = allowedDigits[Math.floor(Math.random() * allowedDigits.length)];
       
       a = generateNumber(digitsA);
       b = generateNumber(digitsB);
