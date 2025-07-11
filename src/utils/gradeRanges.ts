@@ -49,59 +49,70 @@ export const generateNumberInRange = (min: number, max: number): number => {
   return result;
 };
 
-// FUNÇÃO CORRIGIDA: Gera um problema válido onde AMBOS os operandos estão ESTRITAMENTE no intervalo da série
+// FUNÇÃO TOTALMENTE REESCRITA: Garante operandos ESTRITAMENTE no range da série
 export const generateValidProblem = (operationType: string): { num1: number, num2: number } => {
   const range = getNumberRangeByGrade();
   
-  console.log(`=== GENERATING PROBLEM ===`);
-  console.log(`Operation: ${operationType}`);
-  console.log(`Grade range: ${range.min} to ${range.max}`);
+  console.log(`=== GENERATING PROBLEM FOR ${operationType.toUpperCase()} ===`);
+  console.log(`Grade range STRICT: ${range.min} to ${range.max}`);
   
-  // Gerar SEMPRE números dentro do intervalo exato da série
-  let num1 = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-  let num2 = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+  // GERAR SEMPRE dentro do range exato - SEM EXCEÇÕES
+  let num1 = generateNumberInRange(range.min, range.max);
+  let num2 = generateNumberInRange(range.min, range.max);
   
-  console.log(`Initial operands: ${num1}, ${num2}`);
+  console.log(`STRICT operands generated: num1=${num1}, num2=${num2}`);
+  console.log(`num1 in range? ${num1 >= range.min && num1 <= range.max}`);
+  console.log(`num2 in range? ${num2 >= range.min && num2 <= range.max}`);
   
-  // Ajustes específicos por operação
+  // Ajustes específicos por operação MANTENDO o range
   if (operationType === "subtracao") {
     // Para subtração, garantir que num1 >= num2 para evitar resultados negativos
     if (num1 < num2) {
       [num1, num2] = [num2, num1];
     }
-    console.log(`Subtraction adjusted: ${num1} - ${num2}`);
+    console.log(`Subtraction adjusted: ${num1} - ${num2} (both still in range)`);
   } else if (operationType === "divisao") {
-    // Para divisão, garantir que num2 não seja zero e que a divisão seja exata
+    // Para divisão, garantir que num2 não seja zero e que seja divisão exata
     if (num2 === 0) {
-      num2 = 1;
+      num2 = generateNumberInRange(range.min, range.max);
+      if (num2 === 0) num2 = 1; // fallback mínimo
     }
     
-    // Garantir divisão exata: fazer num1 ser múltiplo de num2
-    const maxQuotient = Math.floor(range.max / num2);
-    const quotient = Math.floor(Math.random() * Math.min(maxQuotient, 10)) + 1;
-    num1 = num2 * quotient;
-    
-    // Se num1 ultrapassar o limite, ajustar
-    if (num1 > range.max) {
-      // Escolher um divisor menor
-      num2 = Math.floor(Math.random() * Math.min(range.max, 5)) + 1;
-      const newQuotient = Math.floor(range.max / num2);
-      num1 = num2 * newQuotient;
+    // Para garantir divisão exata, fazer num1 múltiplo de num2
+    // mas mantendo num1 no range
+    const possibleMultiples = [];
+    for (let mult = 1; mult <= 10; mult++) {
+      const candidate = num2 * mult;
+      if (candidate >= range.min && candidate <= range.max) {
+        possibleMultiples.push(candidate);
+      }
     }
     
-    console.log(`Division adjusted: ${num1} ÷ ${num2} = ${Math.floor(num1/num2)}`);
+    if (possibleMultiples.length > 0) {
+      num1 = possibleMultiples[Math.floor(Math.random() * possibleMultiples.length)];
+    }
+    
+    console.log(`Division adjusted: ${num1} ÷ ${num2} = ${Math.floor(num1/num2)} (both in range)`);
   }
   
-  // VERIFICAÇÃO FINAL: garantir que ambos estão no intervalo
-  if (num1 < range.min || num1 > range.max || num2 < range.min || num2 > range.max) {
-    console.log(`ERROR: Operands out of range! num1: ${num1}, num2: ${num2}, range: ${range.min}-${range.max}`);
-    // Forçar números válidos
-    num1 = Math.min(Math.max(num1, range.min), range.max);
-    num2 = Math.min(Math.max(num2, range.min), range.max);
+  // VERIFICAÇÃO FINAL RIGOROSA
+  const num1Valid = num1 >= range.min && num1 <= range.max;
+  const num2Valid = num2 >= range.min && num2 <= range.max;
+  
+  if (!num1Valid || !num2Valid) {
+    console.error(`ERROR: Operands out of range! num1: ${num1} (valid: ${num1Valid}), num2: ${num2} (valid: ${num2Valid})`);
+    console.error(`Expected range: ${range.min}-${range.max}`);
+    
+    // Forçar regeneração dentro do range
+    num1 = generateNumberInRange(range.min, range.max);
+    num2 = generateNumberInRange(range.min, range.max);
+    
+    console.log(`FORCED regeneration: num1=${num1}, num2=${num2}`);
   }
   
-  console.log(`Final problem: ${num1} ${operationType} ${num2}`);
-  console.log(`Both operands in range ${range.min}-${range.max}? ${num1 >= range.min && num1 <= range.max && num2 >= range.min && num2 <= range.max}`);
+  console.log(`=== FINAL PROBLEM: ${num1} ${operationType} ${num2} ===`);
+  console.log(`Final validation - num1 (${num1}) in range ${range.min}-${range.max}? ${num1 >= range.min && num1 <= range.max}`);
+  console.log(`Final validation - num2 (${num2}) in range ${range.min}-${range.max}? ${num2 >= range.min && num2 <= range.max}`);
   
   return { num1, num2 };
 };
