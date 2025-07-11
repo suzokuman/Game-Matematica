@@ -5,46 +5,50 @@ export interface FractionCategories {
   hard: string[];
 }
 
-// Get number range based on grade
+// Get number range based on grade - STRICTLY following requirements
 const getNumberRangeByGrade = () => {
   const playerInfo = JSON.parse(localStorage.getItem("playerInfo") || "{}");
   const grade = parseInt(playerInfo.grade || "1");
   
   switch (grade) {
-    case 1: return { min: 1, max: 9 }; // 1 a 9
-    case 2: return { min: 1, max: 20 }; // 1 a 20
+    case 1: return { min: 1, max: 9 }; // 1º ano: 1 a 9 (1 algarismo)
+    case 2: return { min: 1, max: 20 }; // 2º ano: 1 a 20 (1 a 2 algarismos)
     case 3: 
-    case 4: return { min: 1, max: 50 }; // 1 a 50
+    case 4: return { min: 1, max: 50 }; // 3º e 4º anos: 1 a 50 (1 a 2 algarismos)
     case 5: 
-    case 6: return { min: 1, max: 99 }; // 1 a 99
-    case 7: return { min: 1, max: 150 }; // 1 a 150
-    case 8: return { min: 100, max: 999 }; // 100 a 999
-    case 9: return { min: 100, max: 9999 }; // 100 a 9999
-    default: return { min: 1, max: 20 };
+    case 6: return { min: 1, max: 99 }; // 5º e 6º anos: 1 a 99 (1 a 2 algarismos)
+    case 7: return { min: 1, max: 150 }; // 7º ano: 1 a 150 (1 a 3 algarismos)
+    case 8: return { min: 100, max: 999 }; // 8º ano: 100 a 999 (3 algarismos)
+    case 9: return { min: 100, max: 9999 }; // 9º ano: 100 a 9999 (3 a 4 algarismos)
+    default: return { min: 1, max: 9 };
   }
 };
 
-// Generate number within specific range
+// Generate number within EXACT range for the grade
 const generateNumberInRange = (min: number, max: number): number => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-// Generate fractions based on difficulty
+// Generate fractions based on grade difficulty - numbers within grade range
 const generateFractionsByDifficulty = () => {
   const range = getNumberRangeByGrade();
   const fractions: string[] = [];
   const generatedSet = new Set<string>();
   
-  // Generate 20 unique fractions within the range
+  console.log(`Generating fractions for grade ${JSON.parse(localStorage.getItem("playerInfo") || "{}").grade}, range: ${range.min}-${range.max}`);
+  
+  // Generate 20 unique fractions within the EXACT range
   while (fractions.length < 20) {
     const numerator = generateNumberInRange(range.min, range.max);
     const denominator = generateNumberInRange(range.min, range.max);
     
+    // Ensure numerator < denominator for proper fractions
     if (numerator < denominator) {
       const fraction = `${numerator}/${denominator}`;
       if (!generatedSet.has(fraction)) {
         generatedSet.add(fraction);
         fractions.push(fraction);
+        console.log(`Generated fraction: ${fraction}`);
       }
     }
   }
@@ -52,13 +56,12 @@ const generateFractionsByDifficulty = () => {
   return fractions;
 };
 
-// Generate a random sequence of fractions based on difficulty
+// Generate a random sequence of fractions based on grade difficulty
 export const generateRandomFractionSequence = (allFractions: FractionCategories): string[] => {
-  // Generate fractions based on the player's grade
   return generateFractionsByDifficulty().sort(() => Math.random() - 0.5);
 };
 
-// Export function to generate numbers for options
+// Export function to generate numbers for options - within grade range
 export const generateNumberForOptions = (): number => {
   const range = getNumberRangeByGrade();
   return generateNumberInRange(range.min, range.max);

@@ -34,20 +34,50 @@ const GamePlayScreen: React.FC<GamePlayScreenProps> = ({
   const [dropMessage, setDropMessage] = useState("Solte aqui a fração correta");
   const [options, setOptions] = useState<string[]>([]);
 
+  // Get number range based on grade - EXACTLY as specified
+  const getNumberRangeByGrade = () => {
+    const playerInfo = JSON.parse(localStorage.getItem("playerInfo") || "{}");
+    const grade = parseInt(playerInfo.grade || "1");
+    
+    switch (grade) {
+      case 1: return { min: 1, max: 9 }; // 1º ano: 1 a 9 (1 algarismo)
+      case 2: return { min: 1, max: 20 }; // 2º ano: 1 a 20 (1 a 2 algarismos)
+      case 3: 
+      case 4: return { min: 1, max: 50 }; // 3º e 4º anos: 1 a 50 (1 a 2 algarismos)
+      case 5: 
+      case 6: return { min: 1, max: 99 }; // 5º e 6º anos: 1 a 99 (1 a 2 algarismos)
+      case 7: return { min: 1, max: 150 }; // 7º ano: 1 a 150 (1 a 3 algarismos)
+      case 8: return { min: 100, max: 999 }; // 8º ano: 100 a 999 (3 algarismos)
+      case 9: return { min: 100, max: 9999 }; // 9º ano: 100 a 9999 (3 a 4 algarismos)
+      default: return { min: 1, max: 9 };
+    }
+  };
+
   const generateOptions = (correct: string) => {
     const options = new Set([correct]);
+    const range = getNumberRangeByGrade();
+    
+    console.log(`Generating fraction options for grade ${JSON.parse(localStorage.getItem("playerInfo") || "{}").grade}, range: ${range.min}-${range.max}`);
     
     while (options.size < 6) {
-      const n = generateNumberForOptions();
-      const d = generateNumberForOptions();
-      if (n < d) options.add(`${n}/${d}`);
+      const n = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+      const d = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+      
+      // Ensure proper fraction (numerator < denominator)
+      if (n < d) {
+        const fraction = `${n}/${d}`;
+        options.add(fraction);
+        console.log(`Generated option: ${fraction}`);
+      }
     }
+    
     return Array.from(options).sort(() => Math.random() - 0.5);
   };
 
   useEffect(() => {
     if (fractionSequence.length > 0) {
       const fraction = fractionSequence[currentLevel];
+      console.log(`Current fraction: ${fraction}`);
       setOptions(generateOptions(fraction));
     }
   }, [currentLevel, fractionSequence]);

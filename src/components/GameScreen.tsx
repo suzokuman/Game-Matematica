@@ -38,32 +38,32 @@ const GameScreen: React.FC<GameScreenProps> = ({
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
-  // Get number range based on player grade
+  // Get number range based on player grade - STRICTLY following the requirements
   const getNumberRangeByGrade = () => {
     const playerInfo = JSON.parse(localStorage.getItem("playerInfo") || "{}");
     const grade = parseInt(playerInfo.grade || "1");
     
     switch (grade) {
-      case 1: return { min: 1, max: 9 }; // 1 a 9
-      case 2: return { min: 1, max: 20 }; // 1 a 20
+      case 1: return { min: 1, max: 9 }; // 1º ano: 1 a 9 (1 algarismo)
+      case 2: return { min: 1, max: 20 }; // 2º ano: 1 a 20 (1 a 2 algarismos)
       case 3: 
-      case 4: return { min: 1, max: 50 }; // 1 a 50
+      case 4: return { min: 1, max: 50 }; // 3º e 4º anos: 1 a 50 (1 a 2 algarismos)
       case 5: 
-      case 6: return { min: 1, max: 99 }; // 1 a 99
-      case 7: return { min: 1, max: 150 }; // 1 a 150
-      case 8: return { min: 100, max: 999 }; // 100 a 999
-      case 9: return { min: 100, max: 9999 }; // 100 a 9999
-      default: return { min: 1, max: 20 };
+      case 6: return { min: 1, max: 99 }; // 5º e 6º anos: 1 a 99 (1 a 2 algarismos)
+      case 7: return { min: 1, max: 150 }; // 7º ano: 1 a 150 (1 a 3 algarismos)
+      case 8: return { min: 100, max: 999 }; // 8º ano: 100 a 999 (3 algarismos)
+      case 9: return { min: 100, max: 9999 }; // 9º ano: 100 a 9999 (3 a 4 algarismos)
+      default: return { min: 1, max: 9 };
     }
   };
 
-  // Gera número dentro da faixa específica
+  // Generate number within the EXACT range for the grade
   const generateNumber = () => {
     const range = getNumberRangeByGrade();
     return Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
   };
 
-  // Calcula a resposta correta
+  // Calculate correct answer
   const calculate = (a: number, b: number, tipo: string) => {
     switch (tipo) {
       case "soma": return a + b;
@@ -74,20 +74,40 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
   };
 
-  // Gera 6 opções (1 correta + 5 erradas)
+  // Generate 6 options (1 correct + 5 wrong) - ALL within grade range
   const generateOptions = (correct: number) => {
     const optionsSet = new Set([correct]);
     const range = getNumberRangeByGrade();
     
+    // Generate wrong answers within a reasonable range but respecting grade limits
     while (optionsSet.size < 6) {
-      const offset = Math.floor(Math.random() * 10) + 1;
-      const wrongAnswer = correct + (Math.random() < 0.5 ? offset : -offset);
+      let wrongAnswer: number;
       
-      // Garantir que as opções erradas estejam dentro de uma faixa razoável
-      if (wrongAnswer > 0 && wrongAnswer <= range.max * 2) {
+      // Try different strategies to generate wrong answers within range
+      const strategy = Math.floor(Math.random() * 3);
+      
+      switch (strategy) {
+        case 0: // Add/subtract small amount
+          const offset = Math.floor(Math.random() * Math.min(10, range.max - range.min)) + 1;
+          wrongAnswer = correct + (Math.random() < 0.5 ? offset : -offset);
+          break;
+        case 1: // Random number from range
+          wrongAnswer = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+          break;
+        case 2: // Multiply/divide by small factor
+          const factor = Math.floor(Math.random() * 3) + 2;
+          wrongAnswer = Math.random() < 0.5 ? Math.floor(correct * factor) : Math.floor(correct / factor);
+          break;
+        default:
+          wrongAnswer = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+      }
+      
+      // Ensure wrong answer is within grade range and not zero or negative
+      if (wrongAnswer >= range.min && wrongAnswer <= range.max && wrongAnswer > 0) {
         optionsSet.add(wrongAnswer);
       }
     }
+    
     return Array.from(optionsSet).sort(() => Math.random() - 0.5);
   };
 
@@ -100,7 +120,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
       playCorrect();
       onScoreChange(score + 1);
       
-      // Adiciona o par atual à lista de problemas usados
       const problemKey = `${num1}-${num2}-${operationType}`;
       setUsedProblemSets(prev => [...prev, problemKey]);
       
@@ -118,27 +137,56 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const loadProblem = () => {
+    const range = getNumberRangeByGrade();
     let a: number;
     let b: number;
     let problemKey: string;
     let attempts = 0;
-    const maxAttempts = 10;
+    const maxAttempts = 20;
     
     do {
       a = generateNumber();
       b = generateNumber();
       
+      // Special handling for division
       if (operationType === "divisao") {
-        // Garantir que b não é zero
-        b = b === 0 ? 1 : b;
-        // Fazer com que a seja múltiplo de b para garantir divisão exata
-        const multiplier = Math.floor(a / b) + 1;
-        a = b * multiplier;
+        // Ensure b is not zero
+        if (b === 0) b = 1;
+        
+        // Make sure division result is within range and is a whole number
+        const possibleResults = [];
+        for (let result = range.min; result <= Math.min(range.max, 50); result++) {
+          const dividend = result * b;
+          if (dividend >= range.min && dividend <= range.max) {
+            possibleResults.push({ dividend, divisor: b, result });
+          }
+        }
+        
+        if (possibleResults.length > 0) {
+          const selected = possibleResults[Math.floor(Math.random() * possibleResults.length)];
+          a = selected.dividend;
+          b = selected.divisor;
+        }
       }
       
-      // Para subtração, garantir que a > b para evitar números negativos
+      // For subtraction, ensure a >= b to avoid negative results
       if (operationType === "subtracao" && a < b) {
         [a, b] = [b, a];
+      }
+      
+      // Ensure the result of the operation is within reasonable bounds
+      const result = calculate(a, b, operationType);
+      
+      // Check if result is reasonable for the grade level
+      const isValidResult = result > 0 && 
+        (operationType === "soma" ? result <= range.max * 2 : 
+         operationType === "subtracao" ? result >= 0 : 
+         operationType === "multiplicacao" ? result <= range.max * Math.min(range.max, 10) :
+         operationType === "divisao" ? result <= range.max : true);
+      
+      if (!isValidResult) {
+        attempts++;
+        continue;
       }
       
       problemKey = `${a}-${b}-${operationType}`;
@@ -148,6 +196,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
         break;
       }
     } while (usedProblemSets.includes(problemKey));
+    
+    console.log(`Generated problem: ${a} ${operationType} ${b} for grade ${JSON.parse(localStorage.getItem("playerInfo") || "{}").grade}, range: ${range.min}-${range.max}`);
     
     setNum1(a);
     setNum2(b);
