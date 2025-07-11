@@ -5,7 +5,7 @@ import DraggableOption from "./DraggableOption";
 import DropZone from "./DropZone";
 import { useSoundEffects } from "./SoundEffects";
 import { Button } from "@/components/ui/button";
-import { getNumberRangeByGrade, generateNumberInRange, generateNumberForGrade } from "@/utils/gradeRanges";
+import { generateValidProblem, generateOptionsWithCorrect } from "@/utils/gradeRanges";
 
 interface GameScreenProps {
   currentLevel: number;
@@ -50,53 +50,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
   };
 
-  // Generate 6 options (1 correct + 5 wrong) - ALL within grade range
-  const generateOptions = (correct: number) => {
-    const optionsSet = new Set([correct]);
-    const range = getNumberRangeByGrade();
-    
-    console.log(`Generating options for correct answer: ${correct}, range: ${range.min}-${range.max}`);
-    
-    // Generate wrong answers within the EXACT grade range
-    while (optionsSet.size < 6) {
-      let wrongAnswer: number;
-      
-      // Try different strategies to generate wrong answers within range
-      const strategy = Math.floor(Math.random() * 4);
-      
-      switch (strategy) {
-        case 0: // Add/subtract small amount but stay in range
-          const offset = Math.floor(Math.random() * Math.min(5, Math.floor((range.max - range.min) / 4))) + 1;
-          wrongAnswer = correct + (Math.random() < 0.5 ? offset : -offset);
-          break;
-        case 1: // Random number from range
-          wrongAnswer = generateNumberInRange(range.min, range.max);
-          break;
-        case 2: // Multiply/divide by small factor but keep in range
-          const factor = Math.floor(Math.random() * 2) + 2;
-          const candidate = Math.random() < 0.5 ? Math.floor(correct * factor) : Math.floor(correct / factor);
-          wrongAnswer = Math.max(range.min, Math.min(range.max, candidate));
-          break;
-        case 3: // Generate numbers around the correct answer
-          const variation = Math.floor(Math.random() * Math.min(10, Math.floor((range.max - range.min) / 3))) + 1;
-          wrongAnswer = Math.random() < 0.5 ? correct + variation : correct - variation;
-          break;
-        default:
-          wrongAnswer = generateNumberInRange(range.min, range.max);
-      }
-      
-      // Ensure wrong answer is within EXACT grade range and not zero or negative
-      if (wrongAnswer >= range.min && wrongAnswer <= range.max && wrongAnswer > 0 && wrongAnswer !== correct) {
-        optionsSet.add(wrongAnswer);
-        console.log(`Generated wrong option: ${wrongAnswer}`);
-      }
-    }
-    
-    const finalOptions = Array.from(optionsSet).sort(() => Math.random() - 0.5);
-    console.log(`Final options: ${finalOptions.join(', ')}`);
-    return finalOptions;
-  };
-
   const handleDrop = (value: number) => {
     const correct = calculate(num1, num2, operationType);
 
@@ -123,82 +76,19 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const loadProblem = () => {
-    const range = getNumberRangeByGrade();
-    let a: number;
-    let b: number;
-    let problemKey: string;
-    let attempts = 0;
-    const maxAttempts = 20;
+    console.log(`Loading problem for operation: ${operationType}`);
     
-    console.log(`Loading problem for operation: ${operationType}, range: ${range.min}-${range.max}`);
-    
-    do {
-      a = generateNumberForGrade();
-      b = generateNumberForGrade();
-      
-      console.log(`Generated numbers: a=${a}, b=${b}`);
-      
-      // Special handling for division
-      if (operationType === "divisao") {
-        // Ensure b is not zero and result is reasonable
-        if (b === 0) b = 1;
-        
-        // For division, make sure we get a reasonable result within range
-        // Generate a result first, then calculate the dividend
-        const maxResult = Math.min(range.max, 50); // Keep division results reasonable
-        const result = generateNumberInRange(1, maxResult);
-        const divisor = generateNumberInRange(2, Math.min(range.max, 20)); // Keep divisors reasonable
-        
-        a = result * divisor; // This ensures a clean division
-        b = divisor;
-        
-        // Make sure 'a' is still within our range
-        if (a > range.max) {
-          a = generateNumberForGrade();
-          b = Math.max(2, generateNumberInRange(2, Math.min(a, range.max)));
-        }
-        
-        console.log(`Division adjusted: a=${a}, b=${b}, result=${Math.floor(a/b)}`);
-      }
-      
-      // For subtraction, ensure a >= b to avoid negative results
-      if (operationType === "subtracao" && a < b) {
-        [a, b] = [b, a];
-        console.log(`Subtraction adjusted: a=${a}, b=${b}`);
-      }
-      
-      // Verify the result is reasonable for the grade level
-      const result = calculate(a, b, operationType);
-      console.log(`Operation result: ${a} ${operationType} ${b} = ${result}`);
-      
-      // Check if result is reasonable for the grade level
-      const isValidResult = result > 0 && 
-        (operationType === "soma" ? result <= range.max * 2 : 
-         operationType === "subtracao" ? result >= 0 && result <= range.max : 
-         operationType === "multiplicacao" ? result <= range.max * Math.min(range.max, 20) :
-         operationType === "divisao" ? result <= range.max && result === Math.floor(result) : true);
-      
-      if (!isValidResult) {
-        console.log(`Invalid result: ${result}, trying again...`);
-        attempts++;
-        continue;
-      }
-      
-      problemKey = `${a}-${b}-${operationType}`;
-      attempts++;
-      
-      if (attempts >= maxAttempts || usedProblemSets.length === 0) {
-        break;
-      }
-    } while (usedProblemSets.includes(problemKey));
-    
-    console.log(`Final problem: ${a} ${operationType} ${b} = ${calculate(a, b, operationType)}`);
+    // Usar a nova função que garante operandos no intervalo correto
+    const { num1: a, num2: b } = generateValidProblem(operationType);
     
     setNum1(a);
     setNum2(b);
     
     const correct = calculate(a, b, operationType);
-    setOptions(generateOptions(correct));
+    console.log(`Problem loaded: ${a} ${operationType} ${b} = ${correct}`);
+    
+    // Gerar opções incluindo a resposta correta
+    setOptions(generateOptionsWithCorrect(correct));
   };
 
   // Limpa os problemas usados quando mudamos de operação
