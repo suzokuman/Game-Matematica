@@ -28,7 +28,7 @@ const AdminPasswordModal: React.FC<AdminPasswordModalProps> = ({
   
   // Senha administrativa - em um ambiente de produção real,
   // esta senha deveria ser armazenada no servidor
-  const ADMIN_PASSWORD = "admin123";
+  const ADMIN_PASSWORD = "kgk251833#";
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
