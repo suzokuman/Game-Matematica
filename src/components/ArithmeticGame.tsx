@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import StartScreen from "./StartScreen";
 import GameScreen from "./GameScreen";
 import EndScreen from "./EndScreen";
@@ -14,9 +14,10 @@ import { ptBR } from "date-fns/locale";
 interface ArithmeticGameProps {
   initialOperationType?: string;
   onReturnHome: () => void;
+  playerGrade?: string;
 }
 
-const ArithmeticGame = ({ initialOperationType, onReturnHome }: ArithmeticGameProps) => {
+const ArithmeticGame = ({ initialOperationType, onReturnHome, playerGrade }: ArithmeticGameProps) => {
   const [gameState, setGameState] = useState<"start" | "playing" | "end" | "leaderboard">("start");
   const [currentLevel, setCurrentLevel] = useState(0);
   const [score, setScore] = useState(0);
@@ -112,6 +113,8 @@ const ArithmeticGame = ({ initialOperationType, onReturnHome }: ArithmeticGamePr
           operationType={operationType}
           onNextLevel={goToNextLevel}
           onScoreChange={setScore}
+          onReturnHome={onReturnHome}
+          playerGrade={playerGrade}
         />
       )}
       
