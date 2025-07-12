@@ -1,24 +1,51 @@
 
+import { getNumberRangeByGrade, generateNumberInRange } from "@/utils/gradeRanges";
+
 export interface FractionCategories {
   easy: string[];
   medium: string[];
   hard: string[];
 }
 
-// Generate a random sequence of fractions based on difficulty
-export const generateRandomFractionSequence = (allFractions: FractionCategories): string[] => {
-  // Combine all fractions available
-  const allAvailableFractions = [
-    ...allFractions.easy,
-    ...allFractions.medium,
-    ...allFractions.hard
-  ];
+// Generate fractions based on grade difficulty - using EXACT grade ranges
+const generateFractionsByDifficulty = () => {
+  const range = getNumberRangeByGrade();
+  const fractions: string[] = [];
+  const generatedSet = new Set<string>();
   
-  // Shuffle the array of fractions
-  return [...allAvailableFractions].sort(() => Math.random() - 0.5);
+  console.log(`Generating fractions for grade range: ${range.min}-${range.max}`);
+  
+  // Generate 20 unique fractions within the EXACT range
+  while (fractions.length < 20) {
+    const numerator = generateNumberInRange(range.min, range.max);
+    const denominator = generateNumberInRange(range.min, range.max);
+    
+    // Ensure numerator < denominator for proper fractions
+    if (numerator < denominator) {
+      const fraction = `${numerator}/${denominator}`;
+      if (!generatedSet.has(fraction)) {
+        generatedSet.add(fraction);
+        fractions.push(fraction);
+        console.log(`Generated fraction: ${fraction}`);
+      }
+    }
+  }
+  
+  return fractions;
 };
 
-// Lista completa de frações disponíveis por complexidade
+// Generate a random sequence of fractions based on grade difficulty
+export const generateRandomFractionSequence = (allFractions: FractionCategories): string[] => {
+  return generateFractionsByDifficulty().sort(() => Math.random() - 0.5);
+};
+
+// Export function to generate numbers for options - within grade range
+export const generateNumberForOptions = (): number => {
+  const range = getNumberRangeByGrade();
+  return generateNumberInRange(range.min, range.max);
+};
+
+// Lista completa de frações disponíveis por complexidade (mantida para compatibilidade)
 export const allFractions: FractionCategories = {
   easy: ["1/2", "1/3", "1/4", "3/4", "2/3", "3/5"],
   medium: ["4/5", "1/5", "1/6", "5/6", "2/6", "2/4", "3/6"],
