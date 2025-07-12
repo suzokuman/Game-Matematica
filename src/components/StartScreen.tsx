@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 interface StartScreenProps {
   onStart: () => void;
   operationType: string;
+  onReturnHome?: () => void;
 }
 
-const StartScreen: React.FC<StartScreenProps> = ({ onStart, operationType }) => {
+const StartScreen: React.FC<StartScreenProps> = ({ onStart, operationType, onReturnHome }) => {
   const capitalize = (str: string) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
@@ -58,12 +59,24 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart, operationType }) => 
         </p>
       </div>
       
-      <Button 
-        className="game-button animate-pulse-scale"
-        onClick={onStart}
-      >
-        Começar o Jogo
-      </Button>
+      <div className="flex flex-col sm:flex-row gap-4">
+        <Button 
+          className="game-button animate-pulse-scale"
+          onClick={onStart}
+        >
+          Começar o Jogo
+        </Button>
+        
+        {onReturnHome && (
+          <Button 
+            variant="outline"
+            onClick={onReturnHome}
+            className="border-game-primary text-game-primary hover:bg-game-primary hover:text-white"
+          >
+            Voltar para Início
+          </Button>
+        )}
+      </div>
     </motion.div>
   );
 };
