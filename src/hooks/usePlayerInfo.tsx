@@ -1,10 +1,11 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { PlayerFormValues } from "@/components/PlayerForm";
 
 export const usePlayerInfo = () => {
   const [playerInfo, setPlayerInfo] = useState<{ name: string; grade: string } | null>(null);
 
+<<<<<<< HEAD
   useEffect(() => {
     // Limpa o playerInfo ao abrir o app para sempre pedir nome e série
     localStorage.removeItem("playerInfo");
@@ -19,6 +20,8 @@ export const usePlayerInfo = () => {
     }
   }, []);
 
+=======
+>>>>>>> 857bcf51573e2f39a506d40a20f8452ddbcf9283
   const savePlayerInfo = (data: PlayerFormValues) => {
     const newPlayerInfo = {
       name: data.name,
@@ -26,7 +29,7 @@ export const usePlayerInfo = () => {
     };
     
     setPlayerInfo(newPlayerInfo);
-    localStorage.setItem("playerInfo", JSON.stringify(newPlayerInfo));
+    // Removido o localStorage.setItem para não persistir os dados
   };
 
   return {
