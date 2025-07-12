@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import StartScreen from "./StartScreen";
 import EndScreen from "./EndScreen";
@@ -128,6 +128,7 @@ const FractionsGame = ({ onReturnHome }: FractionsGameProps) => {
       onWrongAnswer={handleWrongAnswer}
       playCorrect={playCorrect}
       playWrong={playWrong}
+      onReturnHome={onReturnHome}
     />
   );
 };
