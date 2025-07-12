@@ -102,7 +102,7 @@ const ArithmeticGame = ({ initialOperationType, onReturnHome, playerGrade }: Ari
       <SoundEffects />
       
       {gameState === "start" && (
-        <StartScreen onStart={startGame} operationType={operationType} />
+        <StartScreen onStart={startGame} operationType={operationType} onReturnHome={onReturnHome} />
       )}
       
       {gameState === "playing" && (
@@ -114,7 +114,10 @@ const ArithmeticGame = ({ initialOperationType, onReturnHome, playerGrade }: Ari
           onNextLevel={goToNextLevel}
           onScoreChange={setScore}
           onReturnHome={onReturnHome}
+<<<<<<< HEAD
           playerGrade={playerGrade}
+=======
+>>>>>>> 857bcf51573e2f39a506d40a20f8452ddbcf9283
         />
       )}
       
