@@ -6,7 +6,6 @@ import DraggableOption from "./DraggableOption";
 import DropZone from "./DropZone";
 import { useSoundEffects } from "./SoundEffects";
 import { Button } from "@/components/ui/button";
-import { generateOptionsWithCorrect } from "@/utils/gradeRanges";
 import { createGradeSpecificProblem } from "@/utils/gradeSpecificProblems";
 
 interface GameScreenProps {
@@ -33,7 +32,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const [options, setOptions] = useState<number[]>([]);
   const [dropStatus, setDropStatus] = useState<"idle" | "correct" | "wrong">("idle");
   const [dropMessage, setDropMessage] = useState("Solte aqui a resposta correta");
-  const [usedProblemSets, setUsedProblemSets] = useState<string[]>([]);
   
   const { playCorrect, playWrong } = useSoundEffects();
 
@@ -52,6 +50,44 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
   };
 
+  // Gerar opções incluindo a resposta correta
+  const generateOptionsWithCorrect = (correctAnswer: number): number[] => {
+    const options = new Set([correctAnswer]);
+    
+    console.log(`Generating options for correct answer: ${correctAnswer}`);
+    
+    // Gerar opções variadas mas razoáveis
+    while (options.size < 6) {
+      let option: number;
+      
+      const strategy = Math.floor(Math.random() * 3);
+      
+      switch (strategy) {
+        case 0: // Números próximos à resposta correta
+          const offset = Math.floor(Math.random() * 20) + 1;
+          option = correctAnswer + (Math.random() < 0.5 ? offset : -offset);
+          break;
+        case 1: // Números aleatórios em uma faixa razoável
+          const maxOption = Math.max(correctAnswer * 2, 100);
+          option = Math.floor(Math.random() * maxOption) + 1;
+          break;
+        default: // Variações da resposta correta
+          const factor = Math.random() < 0.5 ? 0.7 : 1.3;
+          option = Math.floor(correctAnswer * factor);
+          break;
+      }
+      
+      // Garantir que a opção seja positiva e diferente da resposta correta
+      if (option > 0 && option !== correctAnswer && option <= 1000) {
+        options.add(option);
+      }
+    }
+    
+    const finalOptions = Array.from(options).sort(() => Math.random() - 0.5);
+    console.log(`Final options: ${finalOptions.join(', ')}`);
+    return finalOptions;
+  };
+
   const handleDrop = (value: number) => {
     const correct = calculate(num1, num2, operationType);
 
@@ -60,9 +96,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
       setDropMessage(`Correto! Resposta: ${value}`);
       playCorrect();
       onScoreChange(score + 1);
-      
-      const problemKey = `${num1}-${num2}-${operationType}`;
-      setUsedProblemSets(prev => [...prev, problemKey]);
       
       setTimeout(() => {
         onNextLevel();
@@ -80,7 +113,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const loadProblem = () => {
     console.log(`CARREGANDO PROBLEMA PARA OPERAÇÃO: ${operationType}`);
     
-    // Usar a nova função específica por série
+    // Usar APENAS a função específica por série
     const { num1: a, num2: b } = createGradeSpecificProblem(operationType);
     
     setNum1(a);
@@ -92,11 +125,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
     // Gerar opções incluindo a resposta correta
     setOptions(generateOptionsWithCorrect(correct));
   };
-
-  // Limpa os problemas usados quando mudamos de operação
-  useEffect(() => {
-    setUsedProblemSets([]);
-  }, [operationType]);
 
   // Carrega um novo problema quando o nível avança
   useEffect(() => {
