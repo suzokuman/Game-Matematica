@@ -3,8 +3,9 @@
 export const createGrade1Problem = (operationType: string): { num1: number, num2: number } => {
   console.log("=== CRIANDO PROBLEMA PARA 1º ANO (1-9) ===");
   
-  let num1 = Math.floor(Math.random() * 9) + 1; // SEMPRE 1 a 9
-  let num2 = Math.floor(Math.random() * 9) + 1; // SEMPRE 1 a 9
+  // FORÇA números entre 1-9 SEMPRE
+  let num1 = Math.floor(Math.random() * 9) + 1; // 1 a 9
+  let num2 = Math.floor(Math.random() * 9) + 1; // 1 a 9
   
   console.log(`ANTES dos ajustes: num1=${num1}, num2=${num2}`);
   
@@ -12,29 +13,32 @@ export const createGrade1Problem = (operationType: string): { num1: number, num2
     // Para subtração, garantir que num1 >= num2 (resultado positivo)
     if (num1 < num2) [num1, num2] = [num2, num1];
   } else if (operationType === "divisao") {
-    // Para divisão, usar divisores pequenos e garantir divisão exata
-    const divisors = [1, 2, 3];
-    num2 = divisors[Math.floor(Math.random() * divisors.length)];
-    const multipliers = [];
-    for (let i = 1; i <= 9; i++) {
-      if (num2 * i <= 9) multipliers.push(i);
-    }
-    if (multipliers.length > 0) {
-      num1 = num2 * multipliers[Math.floor(Math.random() * multipliers.length)];
-    }
+    // Para divisão, usar apenas divisores que resultem em números 1-9
+    const validPairs = [
+      [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [8, 1], [9, 1],
+      [4, 2], [6, 2], [8, 2],
+      [6, 3], [9, 3],
+      [8, 4]
+    ];
+    const pair = validPairs[Math.floor(Math.random() * validPairs.length)];
+    [num1, num2] = pair;
+  } else if (operationType === "multiplicacao") {
+    // Para multiplicação, limitar para que o resultado não exceda números pequenos
+    const validPairs = [
+      [1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [1, 9],
+      [2, 1], [2, 2], [2, 3], [2, 4],
+      [3, 1], [3, 2], [3, 3]
+    ];
+    const pair = validPairs[Math.floor(Math.random() * validPairs.length)];
+    [num1, num2] = pair;
   }
   
-  // VERIFICAÇÃO FINAL RIGOROSA para 1º ano
-  if (num1 < 1 || num1 > 9 || num2 < 1 || num2 > 9) {
-    console.error(`ERRO: Números fora do range do 1º ano! num1=${num1}, num2=${num2}`);
-    // Forçar correção
-    num1 = Math.min(Math.max(num1, 1), 9);
-    num2 = Math.min(Math.max(num2, 1), 9);
-  }
+  // VERIFICAÇÃO FINAL RIGOROSA - NUNCA deve sair do range 1-9
+  num1 = Math.max(1, Math.min(9, num1));
+  num2 = Math.max(1, Math.min(9, num2));
   
   console.log(`1º ANO FINAL: ${num1} ${operationType} ${num2}`);
-  console.log(`VERIFICAÇÃO: num1 (${num1}) está em 1-9? ${num1 >= 1 && num1 <= 9}`);
-  console.log(`VERIFICAÇÃO: num2 (${num2}) está em 1-9? ${num2 >= 1 && num2 <= 9}`);
+  console.log(`VERIFICAÇÃO RIGOROSA: num1=${num1} (1-9?), num2=${num2} (1-9?)`);
   
   return { num1, num2 };
 };

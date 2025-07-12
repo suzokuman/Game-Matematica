@@ -49,13 +49,43 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
   };
 
-  // Gerar opções incluindo a resposta correta
+  // Gerar opções adequadas por série
   const generateOptionsWithCorrect = (correctAnswer: number): number[] => {
     const options = new Set([correctAnswer]);
+    const playerInfo = JSON.parse(localStorage.getItem("playerInfo") || "{}");
+    const grade = parseInt(playerInfo.grade || "1");
     
-    console.log(`Generating options for correct answer: ${correctAnswer}`);
+    console.log(`Gerando opções para ${grade}º ano, resposta correta: ${correctAnswer}`);
     
-    // Gerar opções variadas mas razoáveis
+    // Definir range de opções baseado na série
+    let minOption = 1;
+    let maxOption = 20;
+    
+    switch (grade) {
+      case 1:
+        minOption = 1;
+        maxOption = 18; // Para 1º ano, respostas até 9+9=18
+        break;
+      case 2:
+        minOption = 1;
+        maxOption = 40;
+        break;
+      case 3:
+      case 4:
+        minOption = 1;
+        maxOption = 100;
+        break;
+      case 5:
+      case 6:
+        minOption = 1;
+        maxOption = 200;
+        break;
+      default:
+        minOption = 1;
+        maxOption = Math.max(correctAnswer * 2, 100);
+    }
+    
+    // Gerar opções variadas mas dentro do range apropriado
     while (options.size < 6) {
       let option: number;
       
@@ -63,12 +93,11 @@ const GameScreen: React.FC<GameScreenProps> = ({
       
       switch (strategy) {
         case 0: // Números próximos à resposta correta
-          const offset = Math.floor(Math.random() * 20) + 1;
+          const offset = Math.floor(Math.random() * Math.min(10, maxOption / 4)) + 1;
           option = correctAnswer + (Math.random() < 0.5 ? offset : -offset);
           break;
-        case 1: // Números aleatórios em uma faixa razoável
-          const maxOption = Math.max(correctAnswer * 2, 100);
-          option = Math.floor(Math.random() * maxOption) + 1;
+        case 1: // Números aleatórios no range
+          option = Math.floor(Math.random() * (maxOption - minOption + 1)) + minOption;
           break;
         default: // Variações da resposta correta
           const factor = Math.random() < 0.5 ? 0.7 : 1.3;
@@ -76,14 +105,14 @@ const GameScreen: React.FC<GameScreenProps> = ({
           break;
       }
       
-      // Garantir que a opção seja positiva e diferente da resposta correta
-      if (option > 0 && option !== correctAnswer && option <= 1000) {
+      // Garantir que a opção esteja no range correto e seja diferente da resposta
+      if (option >= minOption && option <= maxOption && option !== correctAnswer && option > 0) {
         options.add(option);
       }
     }
     
     const finalOptions = Array.from(options).sort(() => Math.random() - 0.5);
-    console.log(`Final options: ${finalOptions.join(', ')}`);
+    console.log(`Opções finais para ${grade}º ano: ${finalOptions.join(', ')}`);
     return finalOptions;
   };
 
@@ -121,7 +150,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     const correct = calculate(a, b, operationType);
     console.log(`PROBLEMA CARREGADO: ${a} ${operationType} ${b} = ${correct}`);
     
-    // Gerar opções incluindo a resposta correta
+    // Gerar opções apropriadas para a série
     setOptions(generateOptionsWithCorrect(correct));
   };
 
