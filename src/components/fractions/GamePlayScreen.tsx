@@ -4,7 +4,12 @@ import { motion } from "framer-motion";
 import Fraction from "./Fraction";
 import FractionDropZone from "./FractionDropZone";
 import PizzaFraction from "./PizzaFraction";
+<<<<<<< HEAD
 import { saveLeaderboardEntry } from "@/lib/supabase";
+=======
+import { Button } from "@/components/ui/button";
+import { getNumberRangeByGrade, generateNumberInRange } from "@/utils/gradeRanges";
+>>>>>>> 857bcf51573e2f39a506d40a20f8452ddbcf9283
 
 interface GamePlayScreenProps {
   currentLevel: number;
@@ -15,7 +20,11 @@ interface GamePlayScreenProps {
   onWrongAnswer: () => void;
   playCorrect: () => void;
   playWrong: () => void;
+<<<<<<< HEAD
   onReturnHome: () => void;
+=======
+  onReturnHome?: () => void;
+>>>>>>> 857bcf51573e2f39a506d40a20f8452ddbcf9283
 }
 
 const GamePlayScreen: React.FC<GamePlayScreenProps> = ({
@@ -35,17 +44,29 @@ const GamePlayScreen: React.FC<GamePlayScreenProps> = ({
 
   const generateOptions = (correct: string) => {
     const options = new Set([correct]);
+    const range = getNumberRangeByGrade();
+    
+    console.log(`Generating fraction options for range: ${range.min}-${range.max}`);
+    
     while (options.size < 6) {
-      const n = Math.floor(Math.random() * 9) + 1;
-      const d = Math.floor(Math.random() * 9) + 1;
-      if (n < d) options.add(`${n}/${d}`);
+      const n = generateNumberInRange(range.min, range.max);
+      const d = generateNumberInRange(range.min, range.max);
+      
+      // Ensure proper fraction (numerator < denominator)
+      if (n < d) {
+        const fraction = `${n}/${d}`;
+        options.add(fraction);
+        console.log(`Generated fraction option: ${fraction}`);
+      }
     }
+    
     return Array.from(options).sort(() => Math.random() - 0.5);
   };
 
   useEffect(() => {
     if (fractionSequence.length > 0) {
       const fraction = fractionSequence[currentLevel];
+      console.log(`Current fraction: ${fraction}`);
       setOptions(generateOptions(fraction));
     }
   }, [currentLevel, fractionSequence]);
@@ -121,9 +142,22 @@ const GamePlayScreen: React.FC<GamePlayScreenProps> = ({
         </div>
       </div>
 
-      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">
-        Jogo das Frações
-      </h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl md:text-3xl font-bold">
+          Jogo das Frações
+        </h2>
+        
+        {onReturnHome && (
+          <Button 
+            variant="outline"
+            onClick={onReturnHome}
+            className="border-game-primary text-game-primary hover:bg-game-primary hover:text-white"
+            size="sm"
+          >
+            Voltar
+          </Button>
+        )}
+      </div>
 
       <PizzaFraction fraction={fractionSequence[currentLevel]} />
 
