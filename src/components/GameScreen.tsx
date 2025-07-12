@@ -141,14 +141,16 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const loadProblem = () => {
     console.log(`CARREGANDO PROBLEMA PARA OPERAÇÃO: ${operationType}`);
     
-    // Usar APENAS a função específica por série
-    const { num1: a, num2: b } = createGradeSpecificProblem(operationType);
+    // Usar EXCLUSIVAMENTE a função específica por série
+    const problem = createGradeSpecificProblem(operationType);
     
-    setNum1(a);
-    setNum2(b);
+    console.log(`PROBLEMA RECEBIDO:`, problem);
     
-    const correct = calculate(a, b, operationType);
-    console.log(`PROBLEMA CARREGADO: ${a} ${operationType} ${b} = ${correct}`);
+    setNum1(problem.num1);
+    setNum2(problem.num2);
+    
+    const correct = calculate(problem.num1, problem.num2, operationType);
+    console.log(`PROBLEMA FINAL CARREGADO: ${problem.num1} ${operationType} ${problem.num2} = ${correct}`);
     
     // Gerar opções apropriadas para a série
     setOptions(generateOptionsWithCorrect(correct));
