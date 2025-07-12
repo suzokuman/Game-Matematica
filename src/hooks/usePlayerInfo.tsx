@@ -6,6 +6,8 @@ export const usePlayerInfo = () => {
   const [playerInfo, setPlayerInfo] = useState<{ name: string; grade: string } | null>(null);
 
   useEffect(() => {
+    // Limpa o playerInfo ao abrir o app para sempre pedir nome e série
+    localStorage.removeItem("playerInfo");
     const savedPlayerInfo = localStorage.getItem("playerInfo");
     if (savedPlayerInfo) {
       try {
