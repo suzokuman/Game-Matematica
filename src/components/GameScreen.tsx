@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import ArithmeticProblem from "./ArithmeticProblem";
@@ -5,7 +6,8 @@ import DraggableOption from "./DraggableOption";
 import DropZone from "./DropZone";
 import { useSoundEffects } from "./SoundEffects";
 import { Button } from "@/components/ui/button";
-import { generateValidProblem, generateOptionsWithCorrect } from "@/utils/gradeRanges";
+import { generateOptionsWithCorrect } from "@/utils/gradeRanges";
+import { createGradeSpecificProblem } from "@/utils/gradeSpecificProblems";
 
 interface GameScreenProps {
   currentLevel: number;
@@ -76,16 +78,16 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const loadProblem = () => {
-    console.log(`Loading problem for operation: ${operationType}`);
+    console.log(`CARREGANDO PROBLEMA PARA OPERAÇÃO: ${operationType}`);
     
-    // Usar a nova função que garante operandos no intervalo correto
-    const { num1: a, num2: b } = generateValidProblem(operationType);
+    // Usar a nova função específica por série
+    const { num1: a, num2: b } = createGradeSpecificProblem(operationType);
     
     setNum1(a);
     setNum2(b);
     
     const correct = calculate(a, b, operationType);
-    console.log(`Problem loaded: ${a} ${operationType} ${b} = ${correct}`);
+    console.log(`PROBLEMA CARREGADO: ${a} ${operationType} ${b} = ${correct}`);
     
     // Gerar opções incluindo a resposta correta
     setOptions(generateOptionsWithCorrect(correct));

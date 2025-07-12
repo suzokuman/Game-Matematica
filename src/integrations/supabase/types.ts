@@ -61,19 +61,28 @@ export type Database = {
           class: string | null
           created_at: string | null
           id_name: string
-          pontucao: string | null
+          lista_name: string | null
+          ordem: string | null
+          pontuacao: number | null
+          primal: string
         }
         Insert: {
           class?: string | null
           created_at?: string | null
           id_name: string
-          pontucao?: string | null
+          lista_name?: string | null
+          ordem?: string | null
+          pontuacao?: number | null
+          primal?: string
         }
         Update: {
           class?: string | null
           created_at?: string | null
           id_name?: string
-          pontucao?: string | null
+          lista_name?: string | null
+          ordem?: string | null
+          pontuacao?: number | null
+          primal?: string
         }
         Relationships: []
       }
@@ -81,28 +90,28 @@ export type Database = {
         Row: {
           created_at: string | null
           difficulty: number | null
-          id: string | null
+          id: string
           image: string | null
           list_name: string | null
-          user_id: string | null
+          user_id: string
           word: string | null
         }
         Insert: {
           created_at?: string | null
           difficulty?: number | null
-          id?: string | null
+          id: string
           image?: string | null
           list_name?: string | null
-          user_id?: string | null
+          user_id: string
           word?: string | null
         }
         Update: {
           created_at?: string | null
           difficulty?: number | null
-          id?: string | null
+          id?: string
           image?: string | null
           list_name?: string | null
-          user_id?: string | null
+          user_id?: string
           word?: string | null
         }
         Relationships: []
