@@ -1,10 +1,11 @@
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import ArithmeticProblem from "./ArithmeticProblem";
 import DraggableOption from "./DraggableOption";
 import DropZone from "./DropZone";
 import { useSoundEffects } from "./SoundEffects";
+import { saveLeaderboardEntry } from "@/lib/supabase";
 
 interface GameScreenProps {
   currentLevel: number;
@@ -13,6 +14,8 @@ interface GameScreenProps {
   operationType: string;
   onNextLevel: () => void;
   onScoreChange: (newScore: number) => void;
+  onReturnHome: () => void;
+  playerGrade?: string;
 }
 
 const GameScreen: React.FC<GameScreenProps> = ({
@@ -21,7 +24,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
   score,
   operationType,
   onNextLevel,
-  onScoreChange
+  onScoreChange,
+  onReturnHome,
+  playerGrade
 }) => {
   const [num1, setNum1] = useState(0);
   const [num2, setNum2] = useState(0);
@@ -90,45 +95,59 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
   };
 
+  const getRangeByGrade = (grade: string | undefined) => {
+    switch (grade) {
+      case "1º ano":
+        return { min: 1, max: 9 };
+      case "2º ano":
+        return { min: 1, max: 20 };
+      case "3º ano":
+      case "4º ano":
+        return { min: 1, max: 50 };
+      case "5º ano":
+      case "6º ano":
+        return { min: 1, max: 99 };
+      case "7º ano":
+        return { min: 1, max: 150 };
+      case "8º ano":
+        return { min: 100, max: 999 };
+      case "9º ano":
+        return { min: 100, max: 9999 };
+      default:
+        return { min: 1, max: 9 };
+    }
+  };
+
+  const generateNumberByGrade = (grade: string | undefined) => {
+    const { min, max } = getRangeByGrade(grade);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  };
+
   const loadProblem = () => {
-    const digits = currentLevel < 5 ? 1 : currentLevel < 10 ? 2 : currentLevel < 15 ? 3 : 4;
-    
     let a: number;
     let b: number;
     let problemKey: string;
     let attempts = 0;
     const maxAttempts = 10; // Limite para evitar loops infinitos
-    
     // Tenta gerar um problema que ainda não foi usado
     do {
-      // Para divisão, garantir que o resultado seja um número inteiro
-      a = generateNumber(digits);
-      b = generateNumber(digits);
-      
+      a = generateNumberByGrade(playerGrade);
+      b = generateNumberByGrade(playerGrade);
       if (operationType === "divisao") {
-        // Garantir que b não é zero
         b = b === 0 ? 1 : b;
-        // Fazer com que a seja múltiplo de b para garantir divisão exata
-        a = b * Math.floor((generateNumber(digits) / b) + 1);
+        a = b * Math.floor((generateNumberByGrade(playerGrade) / b) + 1);
       }
-      
-      // Para subtração, garantir que a > b para evitar números negativos
       if (operationType === "subtracao" && a < b) {
         [a, b] = [b, a];
       }
-      
       problemKey = `${a}-${b}-${operationType}`;
       attempts++;
-      
-      // Se já tentamos muitas vezes ou não há problemas usados ainda, aceitamos o problema gerado
       if (attempts >= maxAttempts || usedProblemSets.length === 0) {
         break;
       }
     } while (usedProblemSets.includes(problemKey));
-    
     setNum1(a);
     setNum2(b);
-    
     const correct = calculate(a, b, operationType);
     setOptions(generateOptions(correct));
   };
@@ -142,6 +161,32 @@ const GameScreen: React.FC<GameScreenProps> = ({
   useEffect(() => {
     loadProblem();
   }, [currentLevel, operationType]);
+
+  const saveProgress = async () => {
+    const playerInfo = JSON.parse(localStorage.getItem("playerInfo") || "{}");
+    if (playerInfo.name && playerGrade) {
+      await saveLeaderboardEntry({
+        name: playerInfo.name,
+        grade: playerGrade,
+        score,
+        game_type: operationType
+      });
+    }
+  };
+
+  // Salvar ao finalizar o jogo
+  useEffect(() => {
+    if (currentLevel + 1 === maxLevels) {
+      saveProgress();
+    }
+    // eslint-disable-next-line
+  }, [currentLevel]);
+
+  // Modificar o botão Voltar para Início para salvar antes de voltar
+  const handleReturnHome = async () => {
+    await saveProgress();
+    onReturnHome();
+  };
 
   return (
     <motion.div 
@@ -182,6 +227,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
           />
         ))}
       </div>
+      {/* Botão Voltar para Início */}
+      <button
+        className="mt-8 px-6 py-3 bg-game-secondary text-white font-bold rounded-full shadow hover:bg-game-primary transition"
+        onClick={handleReturnHome}
+      >
+        Voltar para Início
+      </button>
     </motion.div>
   );
 };
