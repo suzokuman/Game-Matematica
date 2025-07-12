@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import ArithmeticProblem from "./ArithmeticProblem";
@@ -6,7 +5,7 @@ import DraggableOption from "./DraggableOption";
 import DropZone from "./DropZone";
 import { useSoundEffects } from "./SoundEffects";
 import { Button } from "@/components/ui/button";
-import { createGradeSpecificProblem } from "@/utils/gradeSpecificProblems";
+import { createGradeSpecificProblem } from "@/utils/gradeProblems";
 
 interface GameScreenProps {
   currentLevel: number;

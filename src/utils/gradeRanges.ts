@@ -27,3 +27,8 @@ export const getNumberRangeByGrade = (): NumberRange => {
     default: return { min: 1, max: 9 };
   }
 };
+
+// Adding the missing generateNumberInRange function for compatibility
+export const generateNumberInRange = (min: number, max: number): number => {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
