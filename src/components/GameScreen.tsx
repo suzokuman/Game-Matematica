@@ -1,11 +1,20 @@
+<<<<<<< HEAD
 
 import React, { useState, useEffect } from "react";
+=======
+import { useState, useEffect } from "react";
+>>>>>>> 857bcf51573e2f39a506d40a20f8452ddbcf9283
 import { motion } from "framer-motion";
 import ArithmeticProblem from "./ArithmeticProblem";
 import DraggableOption from "./DraggableOption";
 import DropZone from "./DropZone";
 import { useSoundEffects } from "./SoundEffects";
+<<<<<<< HEAD
 import { saveLeaderboardEntry } from "@/lib/supabase";
+=======
+import { Button } from "@/components/ui/button";
+import { createGradeSpecificProblem } from "@/utils/gradeProblems";
+>>>>>>> 857bcf51573e2f39a506d40a20f8452ddbcf9283
 
 interface GameScreenProps {
   currentLevel: number;
@@ -14,8 +23,12 @@ interface GameScreenProps {
   operationType: string;
   onNextLevel: () => void;
   onScoreChange: (newScore: number) => void;
+<<<<<<< HEAD
   onReturnHome: () => void;
   playerGrade?: string;
+=======
+  onReturnHome?: () => void;
+>>>>>>> 857bcf51573e2f39a506d40a20f8452ddbcf9283
 }
 
 const GameScreen: React.FC<GameScreenProps> = ({
@@ -25,15 +38,18 @@ const GameScreen: React.FC<GameScreenProps> = ({
   operationType,
   onNextLevel,
   onScoreChange,
+<<<<<<< HEAD
   onReturnHome,
   playerGrade
+=======
+  onReturnHome
+>>>>>>> 857bcf51573e2f39a506d40a20f8452ddbcf9283
 }) => {
   const [num1, setNum1] = useState(0);
   const [num2, setNum2] = useState(0);
   const [options, setOptions] = useState<number[]>([]);
   const [dropStatus, setDropStatus] = useState<"idle" | "correct" | "wrong">("idle");
   const [dropMessage, setDropMessage] = useState("Solte aqui a resposta correta");
-  const [usedProblemSets, setUsedProblemSets] = useState<string[]>([]);
   
   const { playCorrect, playWrong } = useSoundEffects();
 
@@ -41,14 +57,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
-  // Gera número com n dígitos
-  const generateNumber = (digits: number) => {
-    const min = Math.pow(10, digits - 1);
-    const max = Math.pow(10, digits) - 1;
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  };
-
-  // Calcula a resposta correta
+  // Calculate correct answer
   const calculate = (a: number, b: number, tipo: string) => {
     switch (tipo) {
       case "soma": return a + b;
@@ -59,14 +68,71 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
   };
 
-  // Gera 6 opções (1 correta + 5 erradas)
-  const generateOptions = (correct: number) => {
-    const optionsSet = new Set([correct]);
-    while (optionsSet.size < 6) {
-      const offset = Math.floor(Math.random() * 10) + 1;
-      optionsSet.add(correct + (Math.random() < 0.5 ? offset : -offset));
+  // Gerar opções adequadas por série
+  const generateOptionsWithCorrect = (correctAnswer: number): number[] => {
+    const options = new Set([correctAnswer]);
+    const playerInfo = JSON.parse(localStorage.getItem("playerInfo") || "{}");
+    const grade = parseInt(playerInfo.grade || "1");
+    
+    console.log(`Gerando opções para ${grade}º ano, resposta correta: ${correctAnswer}`);
+    
+    // Definir range de opções baseado na série
+    let minOption = 1;
+    let maxOption = 20;
+    
+    switch (grade) {
+      case 1:
+        minOption = 1;
+        maxOption = 18; // Para 1º ano, respostas até 9+9=18
+        break;
+      case 2:
+        minOption = 1;
+        maxOption = 40;
+        break;
+      case 3:
+      case 4:
+        minOption = 1;
+        maxOption = 100;
+        break;
+      case 5:
+      case 6:
+        minOption = 1;
+        maxOption = 200;
+        break;
+      default:
+        minOption = 1;
+        maxOption = Math.max(correctAnswer * 2, 100);
     }
-    return Array.from(optionsSet).sort(() => Math.random() - 0.5);
+    
+    // Gerar opções variadas mas dentro do range apropriado
+    while (options.size < 6) {
+      let option: number;
+      
+      const strategy = Math.floor(Math.random() * 3);
+      
+      switch (strategy) {
+        case 0: // Números próximos à resposta correta
+          const offset = Math.floor(Math.random() * Math.min(10, maxOption / 4)) + 1;
+          option = correctAnswer + (Math.random() < 0.5 ? offset : -offset);
+          break;
+        case 1: // Números aleatórios no range
+          option = Math.floor(Math.random() * (maxOption - minOption + 1)) + minOption;
+          break;
+        default: // Variações da resposta correta
+          const factor = Math.random() < 0.5 ? 0.7 : 1.3;
+          option = Math.floor(correctAnswer * factor);
+          break;
+      }
+      
+      // Garantir que a opção esteja no range correto e seja diferente da resposta
+      if (option >= minOption && option <= maxOption && option !== correctAnswer && option > 0) {
+        options.add(option);
+      }
+    }
+    
+    const finalOptions = Array.from(options).sort(() => Math.random() - 0.5);
+    console.log(`Opções finais para ${grade}º ano: ${finalOptions.join(', ')}`);
+    return finalOptions;
   };
 
   const handleDrop = (value: number) => {
@@ -77,10 +143,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
       setDropMessage(`Correto! Resposta: ${value}`);
       playCorrect();
       onScoreChange(score + 1);
-      
-      // Adiciona o par atual à lista de problemas usados
-      const problemKey = `${num1}-${num2}-${operationType}`;
-      setUsedProblemSets(prev => [...prev, problemKey]);
       
       setTimeout(() => {
         onNextLevel();
@@ -124,6 +186,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const loadProblem = () => {
+<<<<<<< HEAD
     let a: number;
     let b: number;
     let problemKey: string;
@@ -150,12 +213,24 @@ const GameScreen: React.FC<GameScreenProps> = ({
     setNum2(b);
     const correct = calculate(a, b, operationType);
     setOptions(generateOptions(correct));
+=======
+    console.log(`CARREGANDO PROBLEMA PARA OPERAÇÃO: ${operationType}`);
+    
+    // Usar EXCLUSIVAMENTE a função específica por série
+    const problem = createGradeSpecificProblem(operationType);
+    
+    console.log(`PROBLEMA RECEBIDO:`, problem);
+    
+    setNum1(problem.num1);
+    setNum2(problem.num2);
+    
+    const correct = calculate(problem.num1, problem.num2, operationType);
+    console.log(`PROBLEMA FINAL CARREGADO: ${problem.num1} ${operationType} ${problem.num2} = ${correct}`);
+    
+    // Gerar opções apropriadas para a série
+    setOptions(generateOptionsWithCorrect(correct));
+>>>>>>> 857bcf51573e2f39a506d40a20f8452ddbcf9283
   };
-
-  // Limpa os problemas usados quando mudamos de operação
-  useEffect(() => {
-    setUsedProblemSets([]);
-  }, [operationType]);
 
   // Carrega um novo problema quando o nível avança
   useEffect(() => {
@@ -204,9 +279,22 @@ const GameScreen: React.FC<GameScreenProps> = ({
         </div>
       </div>
 
-      <h1 className="text-2xl md:text-3xl font-bold mb-6 text-center">
-        Modo: {capitalize(operationType)}
-      </h1>
+      <div className="flex justify-between items-center w-full max-w-md mb-4">
+        <h1 className="text-2xl md:text-3xl font-bold text-center">
+          Modo: {capitalize(operationType)}
+        </h1>
+        
+        {onReturnHome && (
+          <Button 
+            variant="outline"
+            onClick={onReturnHome}
+            className="border-game-primary text-game-primary hover:bg-game-primary hover:text-white"
+            size="sm"
+          >
+            Voltar
+          </Button>
+        )}
+      </div>
 
       <ArithmeticProblem num1={num1} num2={num2} operationType={operationType} />
       
