@@ -1,20 +1,11 @@
-<<<<<<< HEAD
-
-import React, { useState, useEffect } from "react";
-=======
 import { useState, useEffect } from "react";
->>>>>>> 857bcf51573e2f39a506d40a20f8452ddbcf9283
 import { motion } from "framer-motion";
 import ArithmeticProblem from "./ArithmeticProblem";
 import DraggableOption from "./DraggableOption";
 import DropZone from "./DropZone";
 import { useSoundEffects } from "./SoundEffects";
-<<<<<<< HEAD
-import { saveLeaderboardEntry } from "@/lib/supabase";
-=======
 import { Button } from "@/components/ui/button";
 import { createGradeSpecificProblem } from "@/utils/gradeProblems";
->>>>>>> 857bcf51573e2f39a506d40a20f8452ddbcf9283
 
 interface GameScreenProps {
   currentLevel: number;
@@ -23,12 +14,7 @@ interface GameScreenProps {
   operationType: string;
   onNextLevel: () => void;
   onScoreChange: (newScore: number) => void;
-<<<<<<< HEAD
-  onReturnHome: () => void;
-  playerGrade?: string;
-=======
   onReturnHome?: () => void;
->>>>>>> 857bcf51573e2f39a506d40a20f8452ddbcf9283
 }
 
 const GameScreen: React.FC<GameScreenProps> = ({
@@ -38,12 +24,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   operationType,
   onNextLevel,
   onScoreChange,
-<<<<<<< HEAD
-  onReturnHome,
-  playerGrade
-=======
   onReturnHome
->>>>>>> 857bcf51573e2f39a506d40a20f8452ddbcf9283
 }) => {
   const [num1, setNum1] = useState(0);
   const [num2, setNum2] = useState(0);
@@ -157,111 +138,26 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
   };
 
-  const getRangeByGrade = (grade: string | undefined) => {
-    switch (grade) {
-      case "1º ano":
-        return { min: 1, max: 9 };
-      case "2º ano":
-        return { min: 1, max: 20 };
-      case "3º ano":
-      case "4º ano":
-        return { min: 1, max: 50 };
-      case "5º ano":
-      case "6º ano":
-        return { min: 1, max: 99 };
-      case "7º ano":
-        return { min: 1, max: 150 };
-      case "8º ano":
-        return { min: 100, max: 999 };
-      case "9º ano":
-        return { min: 100, max: 9999 };
-      default:
-        return { min: 1, max: 9 };
-    }
-  };
-
-  const generateNumberByGrade = (grade: string | undefined) => {
-    const { min, max } = getRangeByGrade(grade);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  };
-
   const loadProblem = () => {
-<<<<<<< HEAD
-    let a: number;
-    let b: number;
-    let problemKey: string;
-    let attempts = 0;
-    const maxAttempts = 10; // Limite para evitar loops infinitos
-    // Tenta gerar um problema que ainda não foi usado
-    do {
-      a = generateNumberByGrade(playerGrade);
-      b = generateNumberByGrade(playerGrade);
-      if (operationType === "divisao") {
-        b = b === 0 ? 1 : b;
-        a = b * Math.floor((generateNumberByGrade(playerGrade) / b) + 1);
-      }
-      if (operationType === "subtracao" && a < b) {
-        [a, b] = [b, a];
-      }
-      problemKey = `${a}-${b}-${operationType}`;
-      attempts++;
-      if (attempts >= maxAttempts || usedProblemSets.length === 0) {
-        break;
-      }
-    } while (usedProblemSets.includes(problemKey));
-    setNum1(a);
-    setNum2(b);
-    const correct = calculate(a, b, operationType);
-    setOptions(generateOptions(correct));
-=======
     console.log(`CARREGANDO PROBLEMA PARA OPERAÇÃO: ${operationType}`);
     
-    // Usar EXCLUSIVAMENTE a função específica por série
-    const problem = createGradeSpecificProblem(operationType);
+    // Usar APENAS a função específica por série
+    const { num1: a, num2: b } = createGradeSpecificProblem(operationType);
     
-    console.log(`PROBLEMA RECEBIDO:`, problem);
+    setNum1(a);
+    setNum2(b);
     
-    setNum1(problem.num1);
-    setNum2(problem.num2);
-    
-    const correct = calculate(problem.num1, problem.num2, operationType);
-    console.log(`PROBLEMA FINAL CARREGADO: ${problem.num1} ${operationType} ${problem.num2} = ${correct}`);
+    const correct = calculate(a, b, operationType);
+    console.log(`PROBLEMA CARREGADO: ${a} ${operationType} ${b} = ${correct}`);
     
     // Gerar opções apropriadas para a série
     setOptions(generateOptionsWithCorrect(correct));
->>>>>>> 857bcf51573e2f39a506d40a20f8452ddbcf9283
   };
 
   // Carrega um novo problema quando o nível avança
   useEffect(() => {
     loadProblem();
   }, [currentLevel, operationType]);
-
-  const saveProgress = async () => {
-    const playerInfo = JSON.parse(localStorage.getItem("playerInfo") || "{}");
-    if (playerInfo.name && playerGrade) {
-      await saveLeaderboardEntry({
-        name: playerInfo.name,
-        grade: playerGrade,
-        score,
-        game_type: operationType
-      });
-    }
-  };
-
-  // Salvar ao finalizar o jogo
-  useEffect(() => {
-    if (currentLevel + 1 === maxLevels) {
-      saveProgress();
-    }
-    // eslint-disable-next-line
-  }, [currentLevel]);
-
-  // Modificar o botão Voltar para Início para salvar antes de voltar
-  const handleReturnHome = async () => {
-    await saveProgress();
-    onReturnHome();
-  };
 
   return (
     <motion.div 
@@ -315,13 +211,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
           />
         ))}
       </div>
-      {/* Botão Voltar para Início */}
-      <button
-        className="mt-8 px-6 py-3 bg-game-secondary text-white font-bold rounded-full shadow hover:bg-game-primary transition"
-        onClick={handleReturnHome}
-      >
-        Voltar para Início
-      </button>
     </motion.div>
   );
 };

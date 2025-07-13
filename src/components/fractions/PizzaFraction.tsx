@@ -83,6 +83,9 @@ const PizzaFraction: React.FC<PizzaFractionProps> = ({ fraction }) => {
         height={200} 
         className="mb-2"
       />
+      <div className="text-lg font-bold text-center text-game-primary">
+        {num}/{den}
+      </div>
     </div>
   );
 };

@@ -4,12 +4,8 @@ import { motion } from "framer-motion";
 import Fraction from "./Fraction";
 import FractionDropZone from "./FractionDropZone";
 import PizzaFraction from "./PizzaFraction";
-<<<<<<< HEAD
-import { saveLeaderboardEntry } from "@/lib/supabase";
-=======
 import { Button } from "@/components/ui/button";
 import { getNumberRangeByGrade, generateNumberInRange } from "@/utils/gradeRanges";
->>>>>>> 857bcf51573e2f39a506d40a20f8452ddbcf9283
 
 interface GamePlayScreenProps {
   currentLevel: number;
@@ -20,11 +16,7 @@ interface GamePlayScreenProps {
   onWrongAnswer: () => void;
   playCorrect: () => void;
   playWrong: () => void;
-<<<<<<< HEAD
-  onReturnHome: () => void;
-=======
   onReturnHome?: () => void;
->>>>>>> 857bcf51573e2f39a506d40a20f8452ddbcf9283
 }
 
 const GamePlayScreen: React.FC<GamePlayScreenProps> = ({
@@ -96,32 +88,6 @@ const GamePlayScreen: React.FC<GamePlayScreenProps> = ({
     }
   };
 
-  const saveProgress = async () => {
-    const playerInfo = JSON.parse(localStorage.getItem("playerInfo") || "{}");
-    if (playerInfo.name && playerInfo.grade) {
-      await saveLeaderboardEntry({
-        name: playerInfo.name,
-        grade: playerInfo.grade,
-        score,
-        game_type: "frações"
-      });
-    }
-  };
-
-  // Salvar ao finalizar o jogo
-  useEffect(() => {
-    if (currentLevel + 1 === maxLevels) {
-      saveProgress();
-    }
-    // eslint-disable-next-line
-  }, [currentLevel]);
-
-  // Modificar o botão Voltar para Início para salvar antes de voltar
-  const handleReturnHome = async () => {
-    await saveProgress();
-    onReturnHome();
-  };
-
   if (fractionSequence.length === 0 || currentLevel >= fractionSequence.length) {
     return <div>Carregando...</div>;
   }
@@ -174,13 +140,6 @@ const GamePlayScreen: React.FC<GamePlayScreenProps> = ({
           <Fraction key={index} value={option} onDragStart={() => {}} />
         ))}
       </div>
-      {/* Botão Voltar para Início */}
-      <button
-        className="mt-8 px-6 py-3 bg-game-secondary text-white font-bold rounded-full shadow hover:bg-game-primary transition"
-        onClick={handleReturnHome}
-      >
-        Voltar para Início
-      </button>
     </motion.div>
   );
 };
