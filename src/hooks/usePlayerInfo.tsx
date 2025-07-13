@@ -12,7 +12,7 @@ export const usePlayerInfo = () => {
     };
     
     setPlayerInfo(newPlayerInfo);
-    // Removido o localStorage.setItem para não persistir os dados
+    localStorage.setItem("playerInfo", JSON.stringify(newPlayerInfo));
   };
 
   return {

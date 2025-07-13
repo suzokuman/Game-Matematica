@@ -53,3 +53,29 @@ export async function saveLeaderboardEntry(entry: Omit<LeaderboardEntryDB, 'id' 
     return false;
   }
 }
+
+// Função utilitária para salvar score (usada ao finalizar ou desistir do jogo)
+export async function saveScoreToLeaderboard(score: number, gameType: string): Promise<boolean> {
+  const playerInfo = JSON.parse(localStorage.getItem("playerInfo") || "{}");
+  if (!playerInfo.name || !playerInfo.grade) return false;
+
+  const newEntry: LeaderboardEntryDB = {
+    name: playerInfo.name,
+    grade: playerInfo.grade,
+    score,
+    game_type: gameType,
+  };
+
+  // Salva localmente também
+  const leaderboardEntries: any[] = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+  leaderboardEntries.push({ ...newEntry, date: new Date().toLocaleDateString("pt-BR") });
+  localStorage.setItem("leaderboard", JSON.stringify(leaderboardEntries));
+
+  // Salva no Supabase
+  return await saveLeaderboardEntry({
+    name: playerInfo.name,
+    grade: playerInfo.grade,
+    score,
+    game_type: gameType
+  });
+}

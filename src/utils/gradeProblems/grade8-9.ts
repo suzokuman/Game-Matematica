@@ -1,52 +1,67 @@
+import { getNumberRangeByGrade, generateNumberInRange, getMultDivRangeByGrade } from "../gradeRanges";
 
 // 8º ANO: Números de 100 a 999
 export const createGrade8Problem = (operationType: string): { num1: number, num2: number } => {
-  console.log("=== CRIANDO PROBLEMA PARA 8º ANO (100-999) ===");
-  
-  let num1 = Math.floor(Math.random() * 900) + 100;
-  let num2 = Math.floor(Math.random() * 900) + 100;
-  
+  let range = getNumberRangeByGrade();
+  if (operationType === "multiplicacao" || operationType === "divisao") {
+    range = getMultDivRangeByGrade();
+  }
+  let num1 = generateNumberInRange(range.min, range.max);
+  let num2 = generateNumberInRange(range.min, range.max);
+
   if (operationType === "subtracao") {
     if (num1 < num2) [num1, num2] = [num2, num1];
   } else if (operationType === "divisao") {
-    const divisors = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25];
+    const divisors: number[] = [];
+    for (let i = range.min; i <= range.max; i++) {
+      if (i !== 0) divisors.push(i);
+    }
     num2 = divisors[Math.floor(Math.random() * divisors.length)];
-    const minMultiplier = Math.ceil(100 / num2);
-    const maxMultiplier = Math.floor(999 / num2);
-    num1 = num2 * (Math.floor(Math.random() * (maxMultiplier - minMultiplier + 1)) + minMultiplier);
+    const maxMultiplier = Math.floor(range.max / num2);
+    const minMultiplier = Math.ceil(range.min / num2);
+    const multiplier = generateNumberInRange(Math.max(1, minMultiplier), Math.max(1, maxMultiplier));
+    num1 = num2 * multiplier;
+    if (num1 > range.max) num1 = num2 * Math.floor(range.max / num2);
+  } else if (operationType === "multiplicacao") {
+    num1 = generateNumberInRange(range.min, range.max);
+    num2 = generateNumberInRange(range.min, range.max);
   }
-  
-  if (num1 < 100 || num1 > 999 || num2 < 100 || num2 > 999) {
-    num1 = Math.min(Math.max(num1, 100), 999);
-    num2 = Math.min(Math.max(num2, 100), 999);
-  }
-  
-  console.log(`8º ANO FINAL: ${num1} ${operationType} ${num2}`);
+
+  num1 = Math.max(range.min, Math.min(range.max, num1));
+  num2 = Math.max(range.min, Math.min(range.max, num2));
+
   return { num1, num2 };
 };
 
 // 9º ANO: Números de 100 a 9999
 export const createGrade9Problem = (operationType: string): { num1: number, num2: number } => {
-  console.log("=== CRIANDO PROBLEMA PARA 9º ANO (100-9999) ===");
-  
-  let num1 = Math.floor(Math.random() * 9900) + 100;
-  let num2 = Math.floor(Math.random() * 9900) + 100;
-  
+  let range = getNumberRangeByGrade();
+  if (operationType === "multiplicacao" || operationType === "divisao") {
+    range = getMultDivRangeByGrade();
+  }
+  let num1 = generateNumberInRange(range.min, range.max);
+  let num2 = generateNumberInRange(range.min, range.max);
+
   if (operationType === "subtracao") {
     if (num1 < num2) [num1, num2] = [num2, num1];
   } else if (operationType === "divisao") {
-    const divisors = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 50, 100];
+    const divisors: number[] = [];
+    for (let i = range.min; i <= range.max; i++) {
+      if (i !== 0) divisors.push(i);
+    }
     num2 = divisors[Math.floor(Math.random() * divisors.length)];
-    const minMultiplier = Math.ceil(100 / num2);
-    const maxMultiplier = Math.floor(9999 / num2);
-    num1 = num2 * (Math.floor(Math.random() * (maxMultiplier - minMultiplier + 1)) + minMultiplier);
+    const maxMultiplier = Math.floor(range.max / num2);
+    const minMultiplier = Math.ceil(range.min / num2);
+    const multiplier = generateNumberInRange(Math.max(1, minMultiplier), Math.max(1, maxMultiplier));
+    num1 = num2 * multiplier;
+    if (num1 > range.max) num1 = num2 * Math.floor(range.max / num2);
+  } else if (operationType === "multiplicacao") {
+    num1 = generateNumberInRange(range.min, range.max);
+    num2 = generateNumberInRange(range.min, range.max);
   }
-  
-  if (num1 < 100 || num1 > 9999 || num2 < 100 || num2 > 9999) {
-    num1 = Math.min(Math.max(num1, 100), 9999);
-    num2 = Math.min(Math.max(num2, 100), 9999);
-  }
-  
-  console.log(`9º ANO FINAL: ${num1} ${operationType} ${num2}`);
+
+  num1 = Math.max(range.min, Math.min(range.max, num1));
+  num2 = Math.max(range.min, Math.min(range.max, num2));
+
   return { num1, num2 };
 };

@@ -7,6 +7,7 @@ import { useSoundEffects } from "./SoundEffects";
 import LeaderboardTable, { LeaderboardEntry } from "./LeaderboardTable";
 import GamePlayScreen from "./fractions/GamePlayScreen";
 import { generateRandomFractionSequence, allFractions } from "./fractions/FractionGameUtils";
+import { saveScoreToLeaderboard } from "@/lib/supabase";
 
 interface FractionsGameProps {
   onReturnHome: () => void;
@@ -75,6 +76,14 @@ const FractionsGame = ({ onReturnHome }: FractionsGameProps) => {
     setScore(prevScore => prevScore - 1);
   };
 
+  // Função para salvar score ao desistir
+  const handleReturnHome = async () => {
+    if (gameState === "playing" && score > 0) {
+      await saveScoreToLeaderboard(score, "Frações");
+    }
+    onReturnHome();
+  };
+
   if (gameState === "start") {
     return (
       <StartScreen onStart={startGame} operationType="frações" onReturnHome={onReturnHome} />
@@ -128,7 +137,7 @@ const FractionsGame = ({ onReturnHome }: FractionsGameProps) => {
       onWrongAnswer={handleWrongAnswer}
       playCorrect={playCorrect}
       playWrong={playWrong}
-      onReturnHome={onReturnHome}
+      onReturnHome={handleReturnHome}
     />
   );
 };

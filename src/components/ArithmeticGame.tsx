@@ -7,7 +7,7 @@ import SoundEffects from "./SoundEffects";
 import { motion } from "framer-motion";
 import LeaderboardTable, { LeaderboardEntry } from "./LeaderboardTable";
 import { Button } from "@/components/ui/button";
-import { getLeaderboardEntries, LeaderboardEntryDB } from "@/lib/supabase";
+import { getLeaderboardEntries, LeaderboardEntryDB, saveScoreToLeaderboard } from "@/lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -91,6 +91,14 @@ const ArithmeticGame = ({ initialOperationType, onReturnHome }: ArithmeticGamePr
     setGameState("leaderboard");
   };
 
+  // Função para salvar score ao desistir
+  const handleReturnHome = async () => {
+    if (gameState === "playing" && score > 0) {
+      await saveScoreToLeaderboard(score, operationType);
+    }
+    onReturnHome();
+  };
+
   return (
     <motion.div 
       className="container mx-auto py-8 px-4 max-w-4xl"
@@ -112,7 +120,7 @@ const ArithmeticGame = ({ initialOperationType, onReturnHome }: ArithmeticGamePr
           operationType={operationType}
           onNextLevel={goToNextLevel}
           onScoreChange={setScore}
-          onReturnHome={onReturnHome}
+          onReturnHome={handleReturnHome}
         />
       )}
       

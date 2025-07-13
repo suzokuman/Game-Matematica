@@ -1,26 +1,35 @@
+import { getNumberRangeByGrade, generateNumberInRange, getMultDivRangeByGrade } from "../gradeRanges";
 
 // 3º e 4º ANO: Números de 1 a 50
 const createGradeProblem = (grade: number, operationType: string): { num1: number, num2: number } => {
-  console.log(`=== CRIANDO PROBLEMA PARA ${grade}º ANO (1-50) ===`);
-  
-  let num1 = Math.floor(Math.random() * 50) + 1;
-  let num2 = Math.floor(Math.random() * 50) + 1;
-  
+  let range = getNumberRangeByGrade();
+  if (operationType === "multiplicacao" || operationType === "divisao") {
+    range = getMultDivRangeByGrade();
+  }
+  let num1 = generateNumberInRange(range.min, range.max);
+  let num2 = generateNumberInRange(range.min, range.max);
+
   if (operationType === "subtracao") {
     if (num1 < num2) [num1, num2] = [num2, num1];
   } else if (operationType === "divisao") {
-    const divisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const divisors: number[] = [];
+    for (let i = range.min; i <= range.max; i++) {
+      if (i !== 0) divisors.push(i);
+    }
     num2 = divisors[Math.floor(Math.random() * divisors.length)];
-    const maxMultiplier = Math.floor(50 / num2);
-    num1 = num2 * (Math.floor(Math.random() * maxMultiplier) + 1);
+    const maxMultiplier = Math.floor(range.max / num2);
+    const minMultiplier = Math.ceil(range.min / num2);
+    const multiplier = generateNumberInRange(Math.max(1, minMultiplier), Math.max(1, maxMultiplier));
+    num1 = num2 * multiplier;
+    if (num1 > range.max) num1 = num2 * Math.floor(range.max / num2);
+  } else if (operationType === "multiplicacao") {
+    num1 = generateNumberInRange(range.min, range.max);
+    num2 = generateNumberInRange(range.min, range.max);
   }
-  
-  if (num1 < 1 || num1 > 50 || num2 < 1 || num2 > 50) {
-    num1 = Math.min(Math.max(num1, 1), 50);
-    num2 = Math.min(Math.max(num2, 1), 50);
-  }
-  
-  console.log(`${grade}º ANO FINAL: ${num1} ${operationType} ${num2}`);
+
+  num1 = Math.max(range.min, Math.min(range.max, num1));
+  num2 = Math.max(range.min, Math.min(range.max, num2));
+
   return { num1, num2 };
 };
 

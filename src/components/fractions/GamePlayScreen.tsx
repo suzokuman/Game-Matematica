@@ -5,7 +5,8 @@ import Fraction from "./Fraction";
 import FractionDropZone from "./FractionDropZone";
 import PizzaFraction from "./PizzaFraction";
 import { Button } from "@/components/ui/button";
-import { getNumberRangeByGrade, generateNumberInRange } from "@/utils/gradeRanges";
+import { getFractionRangeByGrade, generateNumberInRange } from "@/utils/gradeRanges";
+import { saveScoreToLeaderboard } from "@/lib/supabase";
 
 interface GamePlayScreenProps {
   currentLevel: number;
@@ -36,22 +37,28 @@ const GamePlayScreen: React.FC<GamePlayScreenProps> = ({
 
   const generateOptions = (correct: string) => {
     const options = new Set([correct]);
-    const range = getNumberRangeByGrade();
-    
-    console.log(`Generating fraction options for range: ${range.min}-${range.max}`);
-    
+    const range = getFractionRangeByGrade();
+    const [correctNum, correctDen] = correct.split("/").map(Number);
+    const maxDiff = Math.max(2, Math.floor((range.max - range.min) / 4));
+    function gcd(a: number, b: number): number {
+      return b === 0 ? a : gcd(b, a % b);
+    }
+    function isEquivalent(n1: number, d1: number, n2: number, d2: number) {
+      return n1 * d2 === n2 * d1;
+    }
     while (options.size < 6) {
-      const n = generateNumberInRange(range.min, range.max);
-      const d = generateNumberInRange(range.min, range.max);
-      
-      // Ensure proper fraction (numerator < denominator)
-      if (n < d) {
+      let n = generateNumberInRange(range.min, range.max);
+      let d = generateNumberInRange(range.min, range.max);
+      if (n < d && d - n <= maxDiff) {
+        // Evita frações equivalentes à correta
+        if (isEquivalent(n, d, correctNum, correctDen)) continue;
+        // Evita frações já presentes
         const fraction = `${n}/${d}`;
-        options.add(fraction);
-        console.log(`Generated fraction option: ${fraction}`);
+        if (!options.has(fraction)) {
+          options.add(fraction);
+        }
       }
     }
-    
     return Array.from(options).sort(() => Math.random() - 0.5);
   };
 
@@ -116,7 +123,10 @@ const GamePlayScreen: React.FC<GamePlayScreenProps> = ({
         {onReturnHome && (
           <Button 
             variant="outline"
-            onClick={onReturnHome}
+            onClick={async () => {
+              await saveScoreToLeaderboard(score, "Frações");
+              if (onReturnHome) onReturnHome();
+            }}
             className="border-game-primary text-game-primary hover:bg-game-primary hover:text-white"
             size="sm"
           >

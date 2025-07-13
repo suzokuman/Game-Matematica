@@ -1,5 +1,5 @@
 
-import { getNumberRangeByGrade, generateNumberInRange } from "@/utils/gradeRanges";
+import { getFractionRangeByGrade, generateNumberInRange } from "@/utils/gradeRanges";
 
 export interface FractionCategories {
   easy: string[];
@@ -9,7 +9,7 @@ export interface FractionCategories {
 
 // Generate fractions based on grade difficulty - using EXACT grade ranges
 const generateFractionsByDifficulty = () => {
-  const range = getNumberRangeByGrade();
+  const range = getFractionRangeByGrade();
   const fractions: string[] = [];
   const generatedSet = new Set<string>();
   
@@ -41,7 +41,7 @@ export const generateRandomFractionSequence = (allFractions: FractionCategories)
 
 // Export function to generate numbers for options - within grade range
 export const generateNumberForOptions = (): number => {
-  const range = getNumberRangeByGrade();
+  const range = getFractionRangeByGrade();
   return generateNumberInRange(range.min, range.max);
 };
 
